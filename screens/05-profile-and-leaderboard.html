@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500&amp;family=Geist:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed": "#d8e2ff",
+                      "surface-variant": "#353534",
+                      "on-secondary-fixed": "#310048",
+                      "surface-dim": "#131313",
+                      "inverse-primary": "#005bc1",
+                      "surface-bright": "#3a3939",
+                      "on-tertiary": "#003546",
+                      "on-secondary-fixed-variant": "#7200a3",
+                      "on-primary": "#002e69",
+                      "inverse-on-surface": "#313030",
+                      "outline": "#8b90a0",
+                      "secondary-fixed": "#f6d9ff",
+                      "secondary-fixed-dim": "#e9b3ff",
+                      "on-secondary": "#510074",
+                      "surface-container-low": "#1c1b1b",
+                      "on-tertiary-fixed": "#001f2a",
+                      "tertiary-container": "#139cc7",
+                      "on-secondary-container": "#e5a9ff",
+                      "tertiary-fixed-dim": "#68d3ff",
+                      "on-primary-container": "#00285c",
+                      "surface-container-lowest": "#0e0e0e",
+                      "surface-container": "#201f1f",
+                      "primary-container": "#4b8eff",
+                      "on-primary-fixed": "#001a41",
+                      "on-error-container": "#ffdad6",
+                      "secondary-container": "#7d01b1",
+                      "tertiary": "#68d3ff",
+                      "surface-container-high": "#2a2a2a",
+                      "on-surface": "#e5e2e1",
+                      "background": "#0A0A0A",
+                      "primary-fixed-dim": "#adc6ff",
+                      "outline-variant": "#414755",
+                      "surface": "#131313",
+                      "surface-container-highest": "#353534",
+                      "surface-tint": "#adc6ff",
+                      "on-primary-fixed-variant": "#004493",
+                      "inverse-surface": "#e5e2e1",
+                      "error": "#ffb4ab",
+                      "tertiary-fixed": "#bee9ff",
+                      "secondary": "#e9b3ff",
+                      "on-error": "#690005",
+                      "on-background": "#e5e2e1",
+                      "on-tertiary-container": "#002e3d",
+                      "primary": "#adc6ff",
+                      "on-surface-variant": "#c1c6d7",
+                      "on-tertiary-fixed-variant": "#004d64",
+                      "error-container": "#93000a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "2xl": "1rem",
+                      "3xl": "1.5rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "40px",
+                      "margin-mobile": "20px",
+                      "liquid-gap": "32px",
+                      "container-padding": "24px",
+                      "unit": "4px",
+                      "gutter": "16px",
+                      "row-height-large": "72px",
+                      "inset-padding": "16px",
+                      "margin-page": "20px"
+              },
+              "fontFamily": {
+                      "body-sm": ["Inter"],
+                      "mono-code": ["Geist"],
+                      "headline-lg-mobile": ["Hanken Grotesk"],
+                      "label-caps": ["Geist"],
+                      "body-lg": ["Inter"],
+                      "title-md": ["Hanken Grotesk"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "display-lg": ["Hanken Grotesk"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0A0A0A;
+            color: #e5e2e1;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        .liquid-blur {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.4;
+        }
+        .mesh-1 {
+            background: radial-gradient(circle at 20% 30%, #007AFF 0%, transparent 50%);
+        }
+        .mesh-2 {
+            background: radial-gradient(circle at 80% 70%, #BF5AF2 0%, transparent 50%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-chip {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 0.5px solid rgba(255, 255, 255, 0.05);
+        }
+        .active-pill {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 15px rgba(188, 122, 255, 0.2);
+        }
+        .glow-avatar {
+            box-shadow: 0 0 20px rgba(191, 90, 242, 0.4), inset 0 0 10px rgba(0, 122, 255, 0.4);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-lg">
+<!-- Liquid Background -->
+<div class="liquid-blur mesh-1"></div>
+<div class="liquid-blur mesh-2"></div>
+<!-- Header (Shared Component: TopAppBar logic) -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-3xl flex items-center justify-between px-margin-page h-row-height-large border-b-[0.5px] border-outline-variant">
+<span class="material-symbols-outlined text-primary text-2xl active:scale-95 transition-transform" data-icon="menu">menu</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-semibold text-on-surface">ACM Club</h1>
+<span class="material-symbols-outlined text-primary text-2xl active:scale-95 transition-transform" data-icon="account_circle">account_circle</span>
+</header>
+<main class="pt-24 pb-32 px-inset-padding space-y-8 max-w-[390px] mx-auto">
+<!-- Profile Header -->
+<section class="flex flex-col items-center text-center space-y-4">
+<div class="relative group">
+<div class="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-[#007AFF] to-[#BF5AF2] glow-avatar">
+<img alt="Mounesh K" class="w-full h-full rounded-full object-cover border-2 border-background" data-alt="A close-up high-resolution portrait of a stylish young male computer science student with a friendly smile, set against a dark studio background with cinematic soft purple and blue lighting. The overall mood is professional, intellectual, and futuristic, matching a dark mode iOS app aesthetic with vibrant accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA83bIwvfqQcHjG885z8FUdMDUC5TKVGBFMj9Bu380ioMSTR2wsyHL2xoLAQuV4X1Q8xjm49FJYhKCFpx_cP1n4n4ApudnAharRVXAdjr0tJ1az134CEzCa6yhxwRHXQ6TS5QX7ALKpxva24BicAYQJQouq7Jlcvpv7axyw0PprjnBsBSBKNa7xAj79aN31sUqi1hZnBN2WF-nBJl0JowEmGQ4II0pyFbQYmzR3kq8etqcP40z9RRYL4uoTt23gTyns-HoU8jMW9O8M"/>
+</div>
+<div class="absolute -bottom-1 -right-1 glass-panel p-2 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="space-y-1">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tight text-on-surface">Mounesh K</h2>
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest opacity-80">ACM Member since 2024</span>
+</div>
+<button class="glass-panel px-8 py-3 rounded-2xl font-label-caps text-label-caps text-primary active:scale-95 transition-all duration-200 hover:opacity-70">
+                Edit Profile
+            </button>
+</section>
+<!-- Stats Grid -->
+<section class="grid grid-cols-3 gap-3">
+<div class="glass-panel p-4 rounded-3xl flex flex-col items-center justify-center text-center space-y-1">
+<span class="font-display-lg text-[24px] font-bold text-primary">12</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant opacity-70 uppercase">Workshops</span>
+</div>
+<div class="glass-panel p-4 rounded-3xl flex flex-col items-center justify-center text-center space-y-1">
+<span class="font-display-lg text-[24px] font-bold text-secondary">8</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant opacity-70 uppercase">Projects</span>
+</div>
+<div class="glass-panel p-4 rounded-3xl flex flex-col items-center justify-center text-center space-y-1">
+<span class="font-display-lg text-[24px] font-bold text-tertiary">5th</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant opacity-70 uppercase">Rank</span>
+</div>
+</section>
+<!-- Skills Section -->
+<section class="space-y-4">
+<h3 class="font-title-md text-title-md px-1">Expertise</h3>
+<div class="flex flex-wrap gap-2">
+<span class="glass-chip px-4 py-2 rounded-full font-body-sm text-body-sm text-primary">Python</span>
+<span class="glass-chip px-4 py-2 rounded-full font-body-sm text-body-sm text-secondary">Swift</span>
+<span class="glass-chip px-4 py-2 rounded-full font-body-sm text-body-sm text-tertiary">React</span>
+<span class="glass-chip px-4 py-2 rounded-full font-body-sm text-body-sm text-on-surface">Node.js</span>
+</div>
+</section>
+<!-- Achievements -->
+<section class="space-y-4">
+<div class="flex justify-between items-center px-1">
+<h3 class="font-title-md text-title-md">Badges</h3>
+<button class="text-primary font-label-caps text-xs">View All</button>
+</div>
+<div class="flex space-x-4 overflow-x-auto hide-scrollbar pb-2">
+<div class="flex-shrink-0 w-16 h-16 rounded-full glass-panel flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-3xl" data-icon="rocket_launch" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</div>
+<div class="flex-shrink-0 w-16 h-16 rounded-full glass-panel flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="code_blocks" style="font-variation-settings: 'FILL' 1;">code_blocks</span>
+</div>
+<div class="flex-shrink-0 w-16 h-16 rounded-full glass-panel flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-3xl" data-icon="terminal" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<div class="flex-shrink-0 w-16 h-16 rounded-full glass-panel flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl opacity-40" data-icon="lock">lock</span>
+</div>
+<div class="flex-shrink-0 w-16 h-16 rounded-full glass-panel flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl opacity-40" data-icon="lock">lock</span>
+</div>
+</div>
+</section>
+<!-- Leaderboard Section -->
+<section class="glass-panel rounded-3xl overflow-hidden">
+<div class="flex p-2 gap-1 border-b border-white/5">
+<button class="flex-1 py-2 active-pill rounded-2xl font-label-caps text-label-caps text-on-surface">Weekly</button>
+<button class="flex-1 py-2 rounded-2xl font-label-caps text-label-caps text-on-surface-variant opacity-60">All Time</button>
+</div>
+<div class="divide-y divide-white/5">
+<!-- Rank 1 -->
+<div class="flex items-center justify-between p-4 bg-gradient-to-r from-primary/5 to-transparent">
+<div class="flex items-center gap-4">
+<span class="w-6 font-display-lg text-lg text-primary">1.</span>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full glass-panel flex-shrink-0 overflow-hidden">
+<img alt="Alex R" data-alt="Profile photo of a professional young software engineer in a dark tech setting. The image uses futuristic blue and violet rim lighting to highlight his features, conveying a sense of expertise and modern leadership. High contrast dark mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUd5PKIXrCL9omnUogJlL5mB4hj5UXzG8yPFDzFEbgpr3lxHs3-uX7ZxJd9GHSM0mpCbsd-7O096zG7c_H2DWZ7cfXpWyIIIzOXkfEQfG5sC8pmTxj1iMsjx1zP7atPhBzrnboqBJGduU58FXxHSfFPOU1Y--tfDSrZb34sXKJ7M3zugN-LoGtSUlG39vGNZMvOtOOU1ANMEeHAxwbug6gFVnhVS19OqoMi_x9sR656xghL_nu2GDHYVtIWA8ZKhnqCaifunwL13FL"/>
+</div>
+<span class="font-body-lg text-on-surface font-medium">Alex R</span>
+</div>
+</div>
+<span class="font-mono-code text-on-surface-variant text-sm">2450 pts</span>
+</div>
+<!-- Rank 2 -->
+<div class="flex items-center justify-between p-4">
+<div class="flex items-center gap-4">
+<span class="w-6 font-display-lg text-lg text-on-surface-variant">2.</span>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full glass-panel flex-shrink-0 overflow-hidden">
+<img alt="Sarah L" data-alt="A portrait of a young female tech enthusiast with colorful ambient lighting from a computer screen reflecting on her face. Her expression is focused and ambitious, set against a blurred background of a modern workspace with soft electric purple hues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkgO_BTVn3vQB8l05CFhylmPfTWMC0zmptuJcmflfgP4JwO7hoxg1lt1YMkc4Tf4JChPPMf8_t4kO-9cpsB09XWDGlrjF12AknxHHakeeZfXlfSHhPQEuJwozB_CVt5a2OCiCobg0UvC4LiEocQfbOF9O4YKdeROkvPQqI2NyJPud0FrTT4mbU_3RKindSyJWTed34GfS1aFAMmls36VHTkYyZJPJBExtgWG4YzoX_BuFI0_4qDJ6E_t-F7DXB_Whtl7po5NVjDeGt"/>
+</div>
+<span class="font-body-lg text-on-surface font-medium">Sarah L</span>
+</div>
+</div>
+<span class="font-mono-code text-on-surface-variant text-sm">2120 pts</span>
+</div>
+<!-- Rank 3 -->
+<div class="flex items-center justify-between p-4">
+<div class="flex items-center gap-4">
+<span class="w-6 font-display-lg text-lg text-on-surface-variant">3.</span>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full glass-panel flex-shrink-0 overflow-hidden">
+<img alt="Chen W" data-alt="A high-tech portrait of a male computer scientist, lit by deep cyan and magenta neon lights. The aesthetic is clean and sharp, perfectly matching an elite dark-mode student organization application interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaeg2LIukloofWawKq-bpeziVMJsq117Csc-IPYuOipZ6eSM8mH_Pvq3kL43ncEtRd5hYTC_RIOFA9D09eZi32ZEdv571DDJ-7a7zzTJwE77JBNFMYpyvNpc8ytBLM4uVQP3bVIw9vrVHLLvorlyjcfD1AAYLda3DWeOU-N7P-XLOqlREeByM8CXB-qhUTmhtvd8-9Gs2NR0Y2NC-0A4p9gdZ9aQfkmxsPc90ux31eWUNmQkSoeI_DY5J6bLZ-D4VEO1-Y_pcmzsJg"/>
+</div>
+<span class="font-body-lg text-on-surface font-medium">Chen W</span>
+</div>
+</div>
+<span class="font-mono-code text-on-surface-variant text-sm">1980 pts</span>
+</div>
+<!-- User Rank -->
+<div class="flex items-center justify-between p-4 bg-secondary/10 border-t border-secondary/20">
+<div class="flex items-center gap-4">
+<span class="w-6 font-display-lg text-lg text-secondary">5.</span>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full glass-panel border border-secondary/30 flex-shrink-0 overflow-hidden">
+<img alt="Mounesh K" data-alt="Self-portrait of a male student profile for a leaderboard. High fidelity, cinematic lighting with a tech-forward atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3WAsHVTA8RKZVvMWtEEfn3sJJZFsoYUWdRKiamKlEJRNfYzvpC7jdoqNYUjjrwh3y5i0vj8vGrC0Urb_zfbGleFlMndEKY0fSzZq2rIF0AOG1sC5XNJZYjVvnLYJFmdMcOI7QtFyHsHOIyJphKlSbP_AiJ4zpvsersRkHAzojNCoV9RA2flBEUxQOjU0s03I4yIL-bhd2hefSRV0r-EKyXBvxO8wYrKTQvQAFpxarizFRIqRhIYLl_w0HLc_cwFnhKUYIr91sFC_Y"/>
+</div>
+<span class="font-body-lg text-on-surface font-bold">Mounesh K (You)</span>
+</div>
+</div>
+<span class="font-mono-code text-secondary text-sm font-bold">1850 pts</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Nav (Shared Component: BottomNavBar logic) -->
+<nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/80 backdrop-blur-3xl border-t-[0.5px] border-outline-variant flex justify-around items-center h-row-height-large px-inset-padding">
+<div class="flex flex-col items-center gap-1 text-on-surface-variant hover:opacity-80 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-caption-1 text-[10px]">Home</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant hover:opacity-80 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-caption-1 text-[10px]">Events</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant hover:opacity-80 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="code">code</span>
+<span class="font-caption-1 text-[10px]">Projects</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary hover:opacity-80 active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-caption-1 text-[10px]">Profile</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction: Active state for leaderboard tabs
+        const leaderboardTabs = document.querySelectorAll('.glass-panel button');
+        leaderboardTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                leaderboardTabs.forEach(t => t.classList.remove('active-pill', 'text-on-surface'));
+                leaderboardTabs.forEach(t => t.classList.add('opacity-60', 'text-on-surface-variant'));
+                tab.classList.add('active-pill', 'text-on-surface');
+                tab.classList.remove('opacity-60', 'text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>
