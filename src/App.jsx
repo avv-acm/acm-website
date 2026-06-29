@@ -3,8 +3,10 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import DesignGrid from './components/DesignGrid';
 import JoinModal from './components/JoinModal';
+import SigJoinModal from './components/SigJoinModal';
+import EventRegisterModal from './components/EventRegisterModal';
 import Captcha from './components/Captcha';
-import pencilImage from './assets/Nagercoil_pencil_sharp.png';
+import pencilImage from './assets/2.png';
 import { 
   Users, 
   Calendar, 
@@ -30,8 +32,67 @@ import {
   Edit3,
   Plus,
   Upload,
-  Shield
+  Shield,
+  MessageCircle,
+  UserPlus
 } from 'lucide-react';
+
+// Custom SVG Icons because they are not exported by the installed lucide-react version
+const Linkedin = ({ size = 24, ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect width="4" height="12" x="2" y="9" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+);
+
+const Github = ({ size = 24, ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+    <path d="M9 18c-4.51 2-5-2-7-2" />
+  </svg>
+);
+
+const Instagram = ({ size = 24, ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
 
 import { getMembersFromDB, registerMemberInDB, addBulkMembersToDB } from './firebase';
 
@@ -39,6 +100,11 @@ export default function App() {
   const wsRef = useRef(null);
   const [activeTab, setActiveTab] = useState('home');
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [defaultJoinInterest, setDefaultJoinInterest] = useState('web');
+  const [isSigJoinModalOpen, setIsSigJoinModalOpen] = useState(false);
+  const [activeSigForJoin, setActiveSigForJoin] = useState(null);
+  const [isEventRegisterModalOpen, setIsEventRegisterModalOpen] = useState(false);
+  const [activeEventForRegister, setActiveEventForRegister] = useState(null);
   const [members, setMembers] = useState([]);
   const [registeredSuccess, setRegisteredSuccess] = useState(null);
   const [user, setUser] = useState(null);
@@ -54,7 +120,8 @@ export default function App() {
       activeProject: 'Autonomous Agentic Captcha Validation (AACV)',
       status: 'In Development',
       membersCount: 45,
-      image: ''
+      image: '',
+      joinNowEnabled: true
     },
     'web-dev': {
       title: 'SIG-Web',
@@ -65,7 +132,8 @@ export default function App() {
       activeProject: 'ACM Chapter Portal v2.0 (Liquid Glass Edition)',
       status: 'Beta Testing',
       membersCount: 60,
-      image: ''
+      image: '',
+      joinNowEnabled: true
     },
     'security': {
       title: 'SIG-CyberSecurity',
@@ -76,7 +144,8 @@ export default function App() {
       activeProject: 'JWT Hardened Auth Middleware System',
       status: 'Completed & Audited',
       membersCount: 30,
-      image: ''
+      image: '',
+      joinNowEnabled: true
     },
     'cp': {
       title: 'SIG-CP',
@@ -87,7 +156,8 @@ export default function App() {
       activeProject: 'Mock ICPC Contest Engine & Auto-Grader',
       status: 'Planning Phase',
       membersCount: 50,
-      image: ''
+      image: '',
+      joinNowEnabled: true
     }
   };
 
@@ -188,29 +258,29 @@ export default function App() {
   const [committee, setCommittee] = useState(() => {
     const saved = localStorage.getItem('acm_portal_committee');
     return saved ? JSON.parse(saved) : [
-      { id: 'cc-1', name: 'Abhijith P. S.', role: 'Student Chair', desc: 'Leads the chapter operations, orchestrating events and community growth.', email: 'abhijith@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '' },
-      { id: 'cc-2', name: 'Samyuktha R.', role: 'Vice-Chair', desc: 'Oversees programs and builds partnerships for academic and technical success.', email: 'samyuktha@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '' },
-      { id: 'cc-3', name: 'Devika M.', role: 'Secretary', desc: 'Handles official chapter records, outreach communications, and coordination.', email: 'devika@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '' },
-      { id: 'cc-4', name: 'Harikrishnan S.', role: 'Treasurer', desc: 'Manages chapter budgets, resource allocations, and financial logging.', email: 'harikrishnan@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '' },
-      { id: 'cc-5', name: 'Mounesh S.', role: 'Webmaster / Lead Developer', desc: 'Maintains ACM portal development, hosting architectures, and cloud services.', email: 'mounesh@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '' }
+      { id: 'cc-1', name: 'Abhijith P. S.', role: 'Student Chair', desc: 'Leads the chapter operations, orchestrating events and community growth.', email: 'abhijith@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '', whatsapp: '' },
+      { id: 'cc-2', name: 'Samyuktha R.', role: 'Vice-Chair', desc: 'Oversees programs and builds partnerships for academic and technical success.', email: 'samyuktha@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '', whatsapp: '' },
+      { id: 'cc-3', name: 'Devika M.', role: 'Secretary', desc: 'Handles official chapter records, outreach communications, and coordination.', email: 'devika@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '', whatsapp: '' },
+      { id: 'cc-4', name: 'Harikrishnan S.', role: 'Treasurer', desc: 'Manages chapter budgets, resource allocations, and financial logging.', email: 'harikrishnan@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '', whatsapp: '' },
+      { id: 'cc-5', name: 'Mounesh S.', role: 'Webmaster / Lead Developer', desc: 'Maintains ACM portal development, hosting architectures, and cloud services.', email: 'mounesh@am.amrita.edu', photo: '', linkedin: '', github: '', twitter: '', instagram: '', whatsapp: '' }
     ];
   });
 
   const [faculty, setFaculty] = useState(() => {
     const saved = localStorage.getItem('acm_portal_faculty');
     return saved ? JSON.parse(saved) : [
-      { id: 'fa-1', name: 'Dr. Rajesh K.', role: 'Faculty Sponsor', dept: 'Associate Professor, Dept. of Computer Science & Engineering', bio: 'Guides academic research alignments, community outreach, and official international chapter correspondence.', photo: '' },
-      { id: 'fa-2', name: 'Prof. Meera Nair', role: 'Faculty Co-Sponsor', dept: 'Assistant Professor, Dept. of Computer Science & Engineering', bio: 'Oversees technical training schedules, hackathon organizations, and internal student project evaluations.', photo: '' },
-      { id: 'fa-3', name: 'Prof. Anand S.', role: 'Faculty Co-Sponsor', dept: 'Assistant Professor, Dept. of Computer Science & Engineering', bio: 'Supports the web developments, database architectures, and Cloud / AI workshop integrations.', photo: '' }
+      { id: 'fa-1', name: 'Dr. Rajesh K.', role: 'Faculty Sponsor', dept: 'Associate Professor, Dept. of Computer Science & Engineering', bio: 'Guides academic research alignments, community outreach, and official international chapter correspondence.', photo: '', email: 'rajeshk@amrita.edu', linkedin: '', github: '', whatsapp: '', instagram: '' },
+      { id: 'fa-2', name: 'Prof. Meera Nair', role: 'Faculty Co-Sponsor', dept: 'Assistant Professor, Dept. of Computer Science & Engineering', bio: 'Oversees technical training schedules, hackathon organizations, and internal student project evaluations.', photo: '', email: 'meeranair@amrita.edu', linkedin: '', github: '', whatsapp: '', instagram: '' },
+      { id: 'fa-3', name: 'Prof. Anand S.', role: 'Faculty Co-Sponsor', dept: 'Assistant Professor, Dept. of Computer Science & Engineering', bio: 'Supports the web developments, database architectures, and Cloud / AI workshop integrations.', photo: '', email: 'anands@amrita.edu', linkedin: '', github: '', whatsapp: '', instagram: '' }
     ];
   });
 
   // Leadership Admin states
-  const [committeeForm, setCommitteeForm] = useState({ name: '', role: '', desc: '', email: '', photo: '', linkedin: '', github: '', twitter: '', instagram: '' });
+  const [committeeForm, setCommitteeForm] = useState({ name: '', role: '', desc: '', email: '', photo: '', linkedin: '', github: '', twitter: '', instagram: '', whatsapp: '' });
   const [editingCommitteeId, setEditingCommitteeId] = useState(null);
   const [showCommitteeForm, setShowCommitteeForm] = useState(false);
 
-  const [facultyForm, setFacultyForm] = useState({ name: '', role: '', dept: '', bio: '', photo: '' });
+  const [facultyForm, setFacultyForm] = useState({ name: '', role: '', dept: '', bio: '', photo: '', email: '', linkedin: '', github: '', whatsapp: '', instagram: '' });
   const [editingFacultyId, setEditingFacultyId] = useState(null);
   const [showFacultyForm, setShowFacultyForm] = useState(false);
 
@@ -236,6 +306,50 @@ export default function App() {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [selectedEventForDetail, setSelectedEventForDetail] = useState(null);
 
+  const [gallery, setGallery] = useState(() => {
+    const saved = localStorage.getItem('acm_admin_gallery');
+    return saved ? JSON.parse(saved) : [
+      {
+        _id: 'mem-1',
+        title: 'Vite React Workshop Launch',
+        summary: 'Highlights from our hands-on Vite and React workshop for sophomores.',
+        photos: ['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80'],
+        tags: ['React', 'Workshop', 'Vite'],
+        published: true
+      },
+      {
+        _id: 'mem-2',
+        title: 'Zero-Trust Hackathon Kickoff',
+        summary: 'Opening ceremony of the Zero-Trust Hackathon focusing on web hardening.',
+        photos: ['https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80'],
+        tags: ['Hackathon', 'Security'],
+        published: true
+      }
+    ];
+  });
+  const [selectedGalleryItem, setSelectedGalleryItem] = useState(null);
+
+  useEffect(() => {
+    if (activeTab === 'gallery') {
+      const saved = localStorage.getItem('acm_admin_gallery');
+      if (saved) {
+        setGallery(JSON.parse(saved));
+      }
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'events') return;
+    const featured = events.filter(e => e.featured);
+    if (featured.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCarouselIndex((prev) => (prev + 1) % featured.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [events, activeTab]);
+
   // Map state to variables used in components
   const sigData = sigs;
   const eventsData = events;
@@ -244,7 +358,7 @@ export default function App() {
   const [adminSubTab, setAdminSubTab] = useState('members');
 
   // Input states for admin forms
-  const [memberForm, setMemberForm] = useState({ name: '', rollNo: '', email: '', interest: 'web' });
+  const [memberForm, setMemberForm] = useState({ name: '', rollNo: '', email: '', interest: 'web', year: '1st Year', department: 'Computer Science and Engineering' });
   const [editingMemberId, setEditingMemberId] = useState(null);
   const [showMemberForm, setShowMemberForm] = useState(false);
 
@@ -252,7 +366,7 @@ export default function App() {
   const [editingEventId, setEditingEventId] = useState(null);
   const [showEventForm, setShowEventForm] = useState(false);
 
-  const [sigForm, setSigForm] = useState({ id: 'ai-ml', title: '', sub: '', desc: '', lead: '', facultyAdvisor: '', activeProject: '', status: '', membersCount: 0, image: '' });
+  const [sigForm, setSigForm] = useState({ id: 'ai-ml', title: '', sub: '', desc: '', lead: '', facultyAdvisor: '', activeProject: '', status: '', membersCount: 0, image: '', joinNowEnabled: true });
   const [editingSigId, setEditingSigId] = useState(null);
 
   const [sandboxInput, setSandboxInput] = useState('');
@@ -551,12 +665,14 @@ export default function App() {
       rollNo: sanitizedRollNo,
       email: sanitizedEmail,
       interest: memberForm.interest,
+      year: memberForm.year || '1st Year',
+      department: memberForm.department || 'Computer Science and Engineering',
       joinedAt: new Date().toISOString()
     };
 
     setMembers(prev => [newMember, ...prev]);
     setShowMemberForm(false);
-    setMemberForm({ name: '', rollNo: '', email: '', interest: 'web' });
+    setMemberForm({ name: '', rollNo: '', email: '', interest: 'web', year: '1st Year', department: 'Computer Science and Engineering' });
     logSecurityAction('Member Registry Insert', 'success', `Created member record for ${sanitizedName} (${newMember.id})`);
     showNotification('success', 'Registry Admin', `Registered member ${sanitizedName} successfully.`);
   };
@@ -572,12 +688,14 @@ export default function App() {
       name: sanitizedName,
       rollNo: sanitizedRollNo,
       email: sanitizedEmail,
-      interest: memberForm.interest
+      interest: memberForm.interest,
+      year: memberForm.year || '1st Year',
+      department: memberForm.department || 'Computer Science and Engineering'
     } : m));
 
     setEditingMemberId(null);
     setShowMemberForm(false);
-    setMemberForm({ name: '', rollNo: '', email: '', interest: 'web' });
+    setMemberForm({ name: '', rollNo: '', email: '', interest: 'web', year: '1st Year', department: 'Computer Science and Engineering' });
     logSecurityAction('Member Registry Update', 'info', `Updated member record for ID: ${editingMemberId}`);
     showNotification('success', 'Registry Admin', 'Member record updated successfully.');
   };
@@ -678,7 +796,8 @@ export default function App() {
         activeProject: sanitizedProject,
         status: sanitizedStatus,
         membersCount: parseInt(sigForm.membersCount) || 0,
-        image: sigForm.image || prev[editingSigId]?.image || ''
+        image: sigForm.image || prev[editingSigId]?.image || '',
+        joinNowEnabled: sigForm.joinNowEnabled
       }
     }));
 
@@ -836,12 +955,13 @@ export default function App() {
       linkedin: committeeForm.linkedin || '',
       github: committeeForm.github || '',
       twitter: committeeForm.twitter || '',
-      instagram: committeeForm.instagram || ''
+      instagram: committeeForm.instagram || '',
+      whatsapp: committeeForm.whatsapp || ''
     };
 
     setCommittee(prev => [...prev, newMember]);
     setShowCommitteeForm(false);
-    setCommitteeForm({ name: '', role: '', desc: '', email: '', photo: '', linkedin: '', github: '', twitter: '', instagram: '' });
+    setCommitteeForm({ name: '', role: '', desc: '', email: '', photo: '', linkedin: '', github: '', twitter: '', instagram: '', whatsapp: '' });
     logSecurityAction('Leadership Committee Add', 'success', `Added committee member: ${sanitizedName}`);
     showNotification('success', 'Leadership Admin', `Added ${sanitizedName} to Core Committee.`);
   };
@@ -863,12 +983,13 @@ export default function App() {
       linkedin: committeeForm.linkedin || '',
       github: committeeForm.github || '',
       twitter: committeeForm.twitter || '',
-      instagram: committeeForm.instagram || ''
+      instagram: committeeForm.instagram || '',
+      whatsapp: committeeForm.whatsapp || ''
     } : m));
 
     setEditingCommitteeId(null);
     setShowCommitteeForm(false);
-    setCommitteeForm({ name: '', role: '', desc: '', email: '', photo: '', linkedin: '', github: '', twitter: '', instagram: '' });
+    setCommitteeForm({ name: '', role: '', desc: '', email: '', photo: '', linkedin: '', github: '', twitter: '', instagram: '', whatsapp: '' });
     logSecurityAction('Leadership Committee Update', 'info', `Updated committee member: ${sanitizedName}`);
     showNotification('success', 'Leadership Admin', `Updated committee member details.`);
   };
@@ -895,12 +1016,17 @@ export default function App() {
       role: sanitizedRole,
       dept: sanitizedDept,
       bio: sanitizedBio,
-      photo: facultyForm.photo || ''
+      photo: facultyForm.photo || '',
+      email: facultyForm.email || '',
+      linkedin: facultyForm.linkedin || '',
+      github: facultyForm.github || '',
+      whatsapp: facultyForm.whatsapp || '',
+      instagram: facultyForm.instagram || ''
     };
 
     setFaculty(prev => [...prev, newFac]);
     setShowFacultyForm(false);
-    setFacultyForm({ name: '', role: '', dept: '', bio: '', photo: '' });
+    setFacultyForm({ name: '', role: '', dept: '', bio: '', photo: '', email: '', linkedin: '', github: '', whatsapp: '', instagram: '' });
     logSecurityAction('Leadership Faculty Add', 'success', `Added faculty advisor: ${sanitizedName}`);
     showNotification('success', 'Leadership Admin', `Added ${sanitizedName} to Faculty Advisors.`);
   };
@@ -918,12 +1044,17 @@ export default function App() {
       role: sanitizedRole,
       dept: sanitizedDept,
       bio: sanitizedBio,
-      photo: facultyForm.photo || f.photo || ''
+      photo: facultyForm.photo || f.photo || '',
+      email: facultyForm.email || '',
+      linkedin: facultyForm.linkedin || '',
+      github: facultyForm.github || '',
+      whatsapp: facultyForm.whatsapp || '',
+      instagram: facultyForm.instagram || ''
     } : f));
 
     setEditingFacultyId(null);
     setShowFacultyForm(false);
-    setFacultyForm({ name: '', role: '', dept: '', bio: '', photo: '' });
+    setFacultyForm({ name: '', role: '', dept: '', bio: '', photo: '', email: '', linkedin: '', github: '', whatsapp: '', instagram: '' });
     logSecurityAction('Leadership Faculty Update', 'info', `Updated faculty advisor details: ${sanitizedName}`);
     showNotification('success', 'Leadership Admin', `Updated faculty advisor details.`);
   };
@@ -1017,6 +1148,11 @@ export default function App() {
     setRegisteredSuccess(saved);
   };
 
+  const handleOpenJoinModal = (interest = 'web') => {
+    setDefaultJoinInterest(interest);
+    setIsJoinModalOpen(true);
+  };
+
   const handleAdminLogin = (e) => {
     e.preventDefault();
     const now = Date.now();
@@ -1104,7 +1240,7 @@ export default function App() {
         <Navbar 
           activeTab={activeTab} 
           setActiveTab={setActiveTab} 
-          onJoinClick={() => setIsJoinModalOpen(true)}
+          onJoinClick={() => handleOpenJoinModal('web')}
           user={user}
           onLogout={handleLogout}
         />
@@ -1113,7 +1249,7 @@ export default function App() {
         {activeTab === 'home' && (
           <>
             <Hero 
-              onJoinClick={() => setIsJoinModalOpen(true)} 
+              onJoinClick={() => handleOpenJoinModal('web')} 
               onExploreClick={() => {
                 const element = document.getElementById('resources');
                 if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -1209,6 +1345,18 @@ export default function App() {
                           }}></span>
                           <span style={{ color: 'var(--text-secondary)' }}>{sigData[activeSigTab].status}</span>
                         </div>
+                        {sigData[activeSigTab].joinNowEnabled !== false && (
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => {
+                              setActiveSigForJoin({ key: activeSigTab, title: sigData[activeSigTab].title });
+                              setIsSigJoinModalOpen(true);
+                            }}
+                            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', height: '28px', border: 'none', borderRadius: '8px', transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)' }}
+                          >
+                            <UserPlus size={12} /> Join Now
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1227,7 +1375,7 @@ export default function App() {
                     </p>
                   </div>
                   <button 
-                    onClick={() => setIsJoinModalOpen(true)}
+                    onClick={() => handleOpenJoinModal('web')}
                     className="btn btn-primary" 
                     style={{ width: '100%', padding: '10px', fontSize: '12.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                   >
@@ -1338,22 +1486,44 @@ export default function App() {
               {committee.map((member) => {
                 const initials = member.name.split(' ').filter(n => n.length > 1).map(n => n[0]).join('').substring(0,2);
                 return (
-                  <div className="apple-card" key={member.id} style={{ minHeight: '260px' }}>
-                    <div className="card-top">
-                      <div className="profile-photo-wrap" style={{ width: '72px', height: '72px', marginBottom: '12px' }}>
-                        {member.photo ? <img src={member.photo} alt={member.name} /> : <span className="profile-initials" style={{ fontSize: '20px' }}>{initials}</span>}
+                  <div className="leadership-card" key={member.id}>
+                    {member.photo ? (
+                      <img src={member.photo} alt={member.name} className="leadership-photo" />
+                    ) : (
+                      <div className="leadership-placeholder">
+                        <span className="leadership-initials">{initials}</span>
                       </div>
-                      <h3 className="card-title" style={{ fontSize: '17px' }}>{member.name}</h3>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent)', marginTop: '2px' }}>{member.role}</div>
-                      {member.desc && <p className="card-desc" style={{ marginTop: '8px', fontSize: '13px' }}>{member.desc}</p>}
-                    </div>
-                    <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {member.email && <a href={`mailto:${member.email}`} style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-secondary)' }}><Mail size={12} /> {member.email}</a>}
-                      <div className="social-links-row">
-                        {member.linkedin && <a href={member.linkedin} target="_blank" rel="noreferrer" className="social-link-btn" title="LinkedIn">in</a>}
-                        {member.github && <a href={member.github} target="_blank" rel="noreferrer" className="social-link-btn" title="GitHub">gh</a>}
-                        {member.twitter && <a href={member.twitter} target="_blank" rel="noreferrer" className="social-link-btn" title="Twitter/X">𝕏</a>}
-                        {member.instagram && <a href={member.instagram} target="_blank" rel="noreferrer" className="social-link-btn" title="Instagram">ig</a>}
+                    )}
+                    <div className="leadership-overlay">
+                      <div className="leadership-role">{member.role}</div>
+                      <h3 className="leadership-name">{member.name}</h3>
+                      {member.desc && <p className="leadership-desc">{member.desc}</p>}
+                      <div className="leadership-socials">
+                        {member.email && (
+                          <a href={`mailto:${member.email}`} className="leadership-social-btn" title="Email">
+                            <Mail size={14} />
+                          </a>
+                        )}
+                        {member.linkedin && (
+                          <a href={member.linkedin} target="_blank" rel="noreferrer" className="leadership-social-btn" title="LinkedIn">
+                            <Linkedin size={14} />
+                          </a>
+                        )}
+                        {member.github && (
+                          <a href={member.github} target="_blank" rel="noreferrer" className="leadership-social-btn" title="GitHub">
+                            <Github size={14} />
+                          </a>
+                        )}
+                        {member.instagram && (
+                          <a href={member.instagram} target="_blank" rel="noreferrer" className="leadership-social-btn" title="Instagram">
+                            <Instagram size={14} />
+                          </a>
+                        )}
+                        {member.whatsapp && (
+                          <a href={`https://wa.me/${member.whatsapp}`} target="_blank" rel="noreferrer" className="leadership-social-btn" title="WhatsApp">
+                            <MessageCircle size={14} />
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1375,15 +1545,46 @@ export default function App() {
               {faculty.map((fac) => {
                 const initials = fac.name.split(' ').filter(n => n.length > 1).map(n => n[0]).join('').substring(0,2);
                 return (
-                  <div className="apple-card" key={fac.id} style={{ minHeight: '240px' }}>
-                    <div className="card-top">
-                      <div className="profile-photo-wrap" style={{ width: '72px', height: '72px', marginBottom: '12px', borderColor: 'rgba(0,113,227,0.3)' }}>
-                        {fac.photo ? <img src={fac.photo} alt={fac.name} /> : <span className="profile-initials" style={{ fontSize: '18px' }}>{initials}</span>}
+                  <div className="leadership-card" key={fac.id}>
+                    {fac.photo ? (
+                      <img src={fac.photo} alt={fac.name} className="leadership-photo" />
+                    ) : (
+                      <div className="leadership-placeholder">
+                        <span className="leadership-initials">{initials}</span>
                       </div>
-                      <h3 className="card-title" style={{ fontSize: '17px' }}>{fac.name}</h3>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent)', marginTop: '2px' }}>{fac.role}</div>
-                      {fac.dept && <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>{fac.dept}</div>}
-                      {fac.bio && <p className="card-desc" style={{ marginTop: '10px', fontSize: '13px' }}>{fac.bio}</p>}
+                    )}
+                    <div className="leadership-overlay">
+                      <div className="leadership-role">{fac.role}</div>
+                      <h3 className="leadership-name">{fac.name}</h3>
+                      {fac.dept && <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 500, marginBottom: '6px' }}>{fac.dept}</div>}
+                      {fac.bio && <p className="leadership-desc">{fac.bio}</p>}
+                      <div className="leadership-socials">
+                        {fac.email && (
+                          <a href={`mailto:${fac.email}`} className="leadership-social-btn" title="Email">
+                            <Mail size={14} />
+                          </a>
+                        )}
+                        {fac.linkedin && (
+                          <a href={fac.linkedin} target="_blank" rel="noreferrer" className="leadership-social-btn" title="LinkedIn">
+                            <Linkedin size={14} />
+                          </a>
+                        )}
+                        {fac.github && (
+                          <a href={fac.github} target="_blank" rel="noreferrer" className="leadership-social-btn" title="GitHub">
+                            <Github size={14} />
+                          </a>
+                        )}
+                        {fac.instagram && (
+                          <a href={fac.instagram} target="_blank" rel="noreferrer" className="leadership-social-btn" title="Instagram">
+                            <Instagram size={14} />
+                          </a>
+                        )}
+                        {fac.whatsapp && (
+                          <a href={`https://wa.me/${fac.whatsapp}`} target="_blank" rel="noreferrer" className="leadership-social-btn" title="WhatsApp">
+                            <MessageCircle size={14} />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -1400,34 +1601,52 @@ export default function App() {
               <h2 className="section-title-large">Special Interest Groups (SIG)</h2>
             </div>
             <div className="apple-grid">
-              {Object.entries(sigs).map(([key, sig]) => (
-                <div className="apple-card" key={key} style={{ minHeight: '260px', display: 'flex', flexDirection: 'column' }}>
-                  {sig.image && <img src={sig.image} alt={sig.title} className="sig-card-image" />}
-                  <div className="card-top">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div className="card-icon" style={{ borderRadius: '12px', width: '40px', height: '40px', margin: 0 }}>
-                        <Terminal size={18} />
+              {Object.entries(sigs).map(([key, sig]) => {
+                const interestMap = {
+                  'ai-ml': 'ai-ml',
+                  'web-dev': 'web',
+                  'security': 'cyber',
+                  'cp': 'cp'
+                };
+                const selectedInterest = interestMap[key] || 'web';
+                return (
+                  <div className="apple-card" key={key} style={{ minHeight: '260px', display: 'flex', flexDirection: 'column' }}>
+                    {sig.image && <img src={sig.image} alt={sig.title} className="sig-card-image" />}
+                    <div className="card-top" style={{ flexGrow: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className="card-icon" style={{ borderRadius: '12px', width: '40px', height: '40px', margin: 0 }}>
+                          <Terminal size={18} />
+                        </div>
+                        <span className={`status-badge ${sig.status.toLowerCase().includes('completed') || sig.status.toLowerCase().includes('active') ? 'badge-success' : sig.status.toLowerCase().includes('beta') ? 'badge-info' : 'badge-warning'}`}>
+                          {sig.status}
+                        </span>
                       </div>
-                      <span className={`status-badge ${sig.status.toLowerCase().includes('completed') || sig.status.toLowerCase().includes('active') ? 'badge-success' : sig.status.toLowerCase().includes('beta') ? 'badge-info' : 'badge-warning'}`}>
-                        {sig.status}
-                      </span>
+                      <h3 className="card-title" style={{ fontSize: '19px', marginTop: '12px' }}>{sig.title}</h3>
+                      {sig.sub && <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>{sig.sub}</div>}
+                      <p className="card-desc" style={{ marginTop: '10px', fontSize: '13.5px', lineHeight: '1.4' }}>{sig.desc}</p>
+                      {sig.activeProject && (
+                        <div style={{ marginTop: '12px', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-glass)', border: '1px solid var(--border)', fontSize: '12.5px' }}>
+                          <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '10px', textTransform: 'uppercase', fontWeight: 600 }}>Active Project</span>
+                          <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{sig.activeProject}</span>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="card-title" style={{ fontSize: '19px', marginTop: '12px' }}>{sig.title}</h3>
-                    {sig.sub && <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>{sig.sub}</div>}
-                    <p className="card-desc" style={{ marginTop: '10px', fontSize: '13.5px', lineHeight: '1.4' }}>{sig.desc}</p>
-                    {sig.activeProject && (
-                      <div style={{ marginTop: '12px', padding: '8px 12px', borderRadius: '8px', background: 'var(--bg-glass)', border: '1px solid var(--border)', fontSize: '12.5px' }}>
-                        <span style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '10px', textTransform: 'uppercase', fontWeight: 600 }}>Active Project</span>
-                        <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{sig.activeProject}</span>
-                      </div>
+                    {sig.joinNowEnabled !== false && (
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => handleOpenJoinModal(selectedInterest)}
+                        style={{ marginTop: '14px', width: '100%', padding: '10px 0', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                      >
+                        <Plus size={14} /> Join Now
+                      </button>
                     )}
+                    <div className="card-bottom" style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '12px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      {sig.lead && <span>Lead: <b style={{ color: 'var(--text-primary)' }}>{sig.lead}</b></span>}
+                      {sig.facultyAdvisor && <span>Advisor: <b style={{ color: 'var(--text-primary)' }}>{sig.facultyAdvisor}</b></span>}
+                    </div>
                   </div>
-                  <div className="card-bottom" style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '12px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    {sig.lead && <span>Lead: <b style={{ color: 'var(--text-primary)' }}>{sig.lead}</b></span>}
-                    {sig.facultyAdvisor && <span>Advisor: <b style={{ color: 'var(--text-primary)' }}>{sig.facultyAdvisor}</b></span>}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
@@ -1569,8 +1788,16 @@ export default function App() {
                     style={{ transform: `translateX(-${carouselIndex * 100}%)` }}
                   >
                     {eventsData.filter(e => e.featured).map((evt) => (
-                      <div className="carousel-slide" key={evt.id}>
-                        <div className="featured-event-hero-card">
+                      <div className="carousel-slide" key={evt.id || evt._id}>
+                        <div 
+                          className="featured-event-hero-card"
+                          style={(evt.bannerImageUrl || evt.image) ? {
+                            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.85)), url(${evt.bannerImageUrl || evt.image})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            border: '1px solid var(--border)'
+                          } : {}}
+                        >
                           <div className="bento-glow-blob blob-right"></div>
                           <div className="event-hero-content">
                             <span className="featured-tag">{evt.tag}</span>
@@ -1592,7 +1819,7 @@ export default function App() {
                               </div>
                             </div>
                             
-                            <button className="btn btn-primary" onClick={() => setIsJoinModalOpen(true)}>
+                            <button className="btn btn-primary" onClick={() => { setActiveEventForRegister(evt); setIsEventRegisterModalOpen(true); }}>
                               Register Now
                             </button>
                           </div>
@@ -1634,7 +1861,7 @@ export default function App() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Terminal size={12} /> {evt.location}</div>
                       </div>
                       <div className="card-bottom" style={{ marginTop: '12px' }}>
-                        <button className="btn btn-primary" onClick={() => setIsJoinModalOpen(true)}>Register for Event</button>
+                        <button className="btn btn-primary" onClick={() => { setActiveEventForRegister(evt); setIsEventRegisterModalOpen(true); }}>Register for Event</button>
                       </div>
                     </div>
                   </div>
@@ -1645,6 +1872,122 @@ export default function App() {
                 </div>
               )}
             </div>
+          </section>
+        )}
+
+        {/* Gallery Tab */}
+        {activeTab === 'gallery' && (
+          <section className="section-container" style={{ paddingTop: '100px', minHeight: '80vh' }}>
+            <div className="section-header">
+              <div className="section-label">Milestones & Visuals</div>
+              <h2 className="section-title-large">ACM Memory Archives</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginTop: '6px', maxWidth: '600px' }}>
+                Relive the coding nights, hackathons, and technology workshops organized by the Amrita ACM Chapter.
+              </p>
+            </div>
+
+            {/* Gallery Grid */}
+            {gallery.filter(item => item.published).length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
+                <p style={{ fontSize: '16px' }}>No public gallery memories uploaded yet.</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '4px' }}>Memories added by administrators in the portal will appear here.</p>
+              </div>
+            ) : (
+              <div className="apple-grid" style={{ marginTop: '30px' }}>
+                {gallery
+                  .filter(item => item.published)
+                  .map((item) => {
+                    const firstPhoto = item.photos && item.photos[0] ? item.photos[0] : '';
+                    return (
+                      <div 
+                        className="apple-card" 
+                        key={item._id} 
+                        style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
+                        onClick={() => setSelectedGalleryItem(item)}
+                      >
+                        <div style={{ height: '200px', overflow: 'hidden', background: 'var(--bg-elevated)', position: 'relative' }}>
+                          {firstPhoto ? (
+                            <img 
+                              src={firstPhoto} 
+                              alt={item.title} 
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }} 
+                              className="gallery-hover-zoom"
+                            />
+                          ) : (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+                              No Cover Photo
+                            </div>
+                          )}
+                          <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', color: '#fff', backdropFilter: 'blur(4px)' }}>
+                            {item.photos?.length || 0} Photo{item.photos?.length === 1 ? '' : 's'}
+                          </div>
+                        </div>
+                        <div style={{ padding: '20px 24px' }}>
+                          <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>{item.title}</h3>
+                          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.5', margin: '0 0 16px' }}>{item.summary}</p>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {(item.tags || []).map((tag, tIdx) => (
+                              <span key={tIdx} style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '8px', background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}>
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+
+            {/* Gallery Detail Modal */}
+            {selectedGalleryItem && (
+              <div className="modal-overlay" onClick={() => setSelectedGalleryItem(null)}>
+                <div className="modal-content" style={{ maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                  <button className="modal-close" onClick={() => setSelectedGalleryItem(null)}>
+                    &times;
+                  </button>
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Event Memory</span>
+                    <h3 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>{selectedGalleryItem.title}</h3>
+                    <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: '1.6' }}>{selectedGalleryItem.summary}</p>
+                  </div>
+
+                  {/* Grid of all photos */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px', margin: '20px 0' }}>
+                    {(selectedGalleryItem.photos || []).map((photo, pIdx) => (
+                      <div key={pIdx} style={{ borderRadius: '12px', overflow: 'hidden', height: '140px', border: '1px solid var(--border)', background: 'var(--bg-tertiary)' }}>
+                        <img 
+                          src={photo} 
+                          alt={`Asset ${pIdx + 1}`} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }} 
+                          onClick={() => window.open(photo, '_blank')}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {selectedGalleryItem.videoUrl && (
+                    <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                      <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>Event Video / Vlog</h4>
+                      <a 
+                        href={selectedGalleryItem.videoUrl} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="btn btn-secondary" 
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
+                      >
+                        Watch Recorded Stream / Presentation Video &rarr;
+                      </a>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                    <button className="btn btn-primary" onClick={() => setSelectedGalleryItem(null)}>Close Details</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -1893,7 +2236,50 @@ export default function App() {
                               type="email" 
                               className="form-input" 
                               value={memberForm.email} 
-                              onChange={(e) => setMemberForm(prev => ({ ...prev, email: e.target.value }))} 
+                              onChange={(e) => {
+                                const emailVal = e.target.value;
+                                setMemberForm(prev => {
+                                  let updated = { ...prev, email: emailVal };
+                                  const parts = emailVal.trim().split('@');
+                                  if (parts.length > 0) {
+                                    const prefix = parts[0].toUpperCase();
+                                    if (prefix) {
+                                      updated.rollNo = prefix;
+                                      
+                                      const match = prefix.match(/U(\d)(CSE|AID|ECE)/i);
+                                      if (match) {
+                                        const batchDigit = match[1];
+                                        const deptCode = match[2].toUpperCase();
+                                        
+                                        const currentYear = new Date().getFullYear();
+                                        const currentMonth = new Date().getMonth();
+                                        const batchYear = 2020 + parseInt(batchDigit);
+                                        let yearOfStudy = currentYear - batchYear;
+                                        if (currentMonth >= 5) {
+                                          yearOfStudy += 1;
+                                        }
+                                        yearOfStudy = Math.max(1, Math.min(4, yearOfStudy));
+                                        
+                                        const yearMap = {
+                                          1: '1st Year',
+                                          2: '2nd Year',
+                                          3: '3rd Year',
+                                          4: '4th Year'
+                                        };
+                                        updated.year = yearMap[yearOfStudy] || '1st Year';
+                                        
+                                        const deptMap = {
+                                          'CSE': 'Computer Science and Engineering',
+                                          'AID': 'Artificial Intelligence and Data Science',
+                                          'ECE': 'Electrical and Communication Engineering'
+                                        };
+                                        updated.department = deptMap[deptCode] || 'Computer Science and Engineering';
+                                      }
+                                    }
+                                  }
+                                  return updated;
+                                });
+                              }} 
                               required 
                             />
                           </div>
@@ -1911,6 +2297,31 @@ export default function App() {
                               <option value="ui-ux">UI/UX Design</option>
                             </select>
                           </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label">Year of Study</label>
+                            <select 
+                              className="form-input" 
+                              value={memberForm.year} 
+                              onChange={(e) => setMemberForm(prev => ({ ...prev, year: e.target.value }))}
+                            >
+                              <option value="1st Year">1st Year</option>
+                              <option value="2nd Year">2nd Year</option>
+                              <option value="3rd Year">3rd Year</option>
+                              <option value="4th Year">4th Year</option>
+                            </select>
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label">Department</label>
+                            <select 
+                              className="form-input" 
+                              value={memberForm.department} 
+                              onChange={(e) => setMemberForm(prev => ({ ...prev, department: e.target.value }))}
+                            >
+                              <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                              <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</option>
+                              <option value="Electrical and Communication Engineering">Electrical and Communication Engineering</option>
+                            </select>
+                          </div>
                           <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
                             <button 
                               type="button" 
@@ -1918,7 +2329,7 @@ export default function App() {
                               onClick={() => {
                                 setShowMemberForm(false);
                                 setEditingMemberId(null);
-                                setMemberForm({ name: '', rollNo: '', email: '', interest: 'web' });
+                                setMemberForm({ name: '', rollNo: '', email: '', interest: 'web', year: '1st Year', department: 'Computer Science and Engineering' });
                               }}
                             >
                               Cancel
@@ -1964,7 +2375,7 @@ export default function App() {
                           className="btn btn-primary" 
                           onClick={() => {
                             setEditingMemberId(null);
-                            setMemberForm({ name: '', rollNo: '', email: '', interest: 'web' });
+                            setMemberForm({ name: '', rollNo: '', email: '', interest: 'web', year: '1st Year', department: 'Computer Science and Engineering' });
                             setShowMemberForm(true);
                           }}
                           style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '10px 16px' }}
@@ -1983,6 +2394,8 @@ export default function App() {
                             <th style={styles.th}>Name</th>
                             <th style={styles.th}>Roll Number</th>
                             <th style={styles.th}>Email Address</th>
+                            <th style={styles.th}>Year</th>
+                            <th style={styles.th}>Department</th>
                             <th style={styles.th}>Primary Domain</th>
                             <th style={styles.th}>Actions</th>
                           </tr>
@@ -1995,6 +2408,8 @@ export default function App() {
                                 <td style={{ ...styles.td, color: 'var(--text-primary)', fontWeight: 500 }}>{m.name}</td>
                                 <td style={styles.td}>{m.rollNo}</td>
                                 <td style={styles.td}>{m.email}</td>
+                                <td style={styles.td}>{m.year || '1st Year'}</td>
+                                <td style={styles.td}>{m.department || 'Computer Science and Engineering'}</td>
                                 <td style={styles.td}>
                                   <span style={{ 
                                     ...styles.tableTag,
@@ -2020,7 +2435,7 @@ export default function App() {
                                     <button 
                                       onClick={() => {
                                         setEditingMemberId(m.id);
-                                        setMemberForm({ name: m.name, rollNo: m.rollNo, email: m.email, interest: m.interest });
+                                        setMemberForm({ name: m.name, rollNo: m.rollNo, email: m.email, interest: m.interest, year: m.year || '1st Year', department: m.department || 'Computer Science and Engineering' });
                                         setShowMemberForm(true);
                                       }}
                                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
@@ -2041,7 +2456,7 @@ export default function App() {
                             ))
                           ) : (
                             <tr>
-                              <td colSpan="6" style={styles.noResults}>
+                              <td colSpan="8" style={styles.noResults}>
                                 No matching member registries found.
                               </td>
                             </tr>
@@ -2252,6 +2667,18 @@ export default function App() {
                               <label className="form-label">Banner Image URL (optional)</label>
                               <input type="url" className="form-input" placeholder="https://..." value={sigForm.image} onChange={(e) => setSigForm(p => ({ ...p, image: e.target.value }))} />
                             </div>
+                            <div className="form-group" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '8px', gridColumn: '1 / -1' }}>
+                              <input 
+                                type="checkbox" 
+                                id="adminJoinNowEnabledCheck" 
+                                checked={sigForm.joinNowEnabled} 
+                                onChange={(e) => setSigForm(p => ({ ...p, joinNowEnabled: e.target.checked }))} 
+                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                              />
+                              <label htmlFor="adminJoinNowEnabledCheck" className="form-label" style={{ marginBottom: 0, cursor: 'pointer', fontWeight: 600 }}>
+                                Enable "Join Now" Button
+                              </label>
+                            </div>
                           </div>
                           <div className="form-group" style={{ marginBottom: 0 }}>
                             <label className="form-label">SIG Description</label>
@@ -2287,7 +2714,7 @@ export default function App() {
                                   className="btn btn-secondary"
                                   onClick={() => {
                                     setEditingSigId(sigKey);
-                                    setSigForm({ id: sigKey, title: sigItem.title, sub: sigItem.sub || '', desc: sigItem.desc, lead: sigItem.lead || '', facultyAdvisor: sigItem.facultyAdvisor || '', activeProject: sigItem.activeProject, status: sigItem.status, membersCount: sigItem.membersCount, image: sigItem.image || '' });
+                                    setSigForm({ id: sigKey, title: sigItem.title, sub: sigItem.sub || '', desc: sigItem.desc, lead: sigItem.lead || '', facultyAdvisor: sigItem.facultyAdvisor || '', activeProject: sigItem.activeProject, status: sigItem.status, membersCount: sigItem.membersCount, image: sigItem.image || '', joinNowEnabled: sigItem.joinNowEnabled !== false });
                                   }}
                                   style={{ width: '100%', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                                 >
@@ -2491,7 +2918,7 @@ export default function App() {
                           <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Mentorship</div>
                           <h3 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)' }}>Faculty Advisors</h3>
                         </div>
-                        <button onClick={() => { setShowFacultyForm(true); setEditingFacultyId(null); setFacultyForm({ name: '', role: '', dept: '', bio: '' }); }} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+                        <button onClick={() => { setShowFacultyForm(true); setEditingFacultyId(null); setFacultyForm({ name: '', role: '', dept: '', bio: '', photo: '', email: '', linkedin: '', github: '', whatsapp: '', instagram: '' }); }} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
                           <Plus size={14} /> Add Advisor
                         </button>
                       </div>
@@ -2515,6 +2942,26 @@ export default function App() {
                             <div className="form-group" style={{ marginBottom: 0, gridColumn: '1 / -1' }}>
                               <label className="form-label">Department</label>
                               <input type="text" className="form-input" placeholder="Associate Professor, Dept. of CSE" value={facultyForm.dept} onChange={e => setFacultyForm(f => ({...f, dept: e.target.value}))} />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                              <label className="form-label">Email Address</label>
+                              <input type="email" className="form-input" placeholder="rajesh@amrita.edu" value={facultyForm.email || ''} onChange={e => setFacultyForm(f => ({...f, email: e.target.value}))} />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                              <label className="form-label">LinkedIn URL</label>
+                              <input type="url" className="form-input" placeholder="https://linkedin.com/in/..." value={facultyForm.linkedin || ''} onChange={e => setFacultyForm(f => ({...f, linkedin: e.target.value}))} />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                              <label className="form-label">GitHub URL</label>
+                              <input type="url" className="form-input" placeholder="https://github.com/..." value={facultyForm.github || ''} onChange={e => setFacultyForm(f => ({...f, github: e.target.value}))} />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                              <label className="form-label">WhatsApp Contact Link</label>
+                              <input type="url" className="form-input" placeholder="https://wa.me/..." value={facultyForm.whatsapp || ''} onChange={e => setFacultyForm(f => ({...f, whatsapp: e.target.value}))} />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 0, gridColumn: '1 / -1' }}>
+                              <label className="form-label">Instagram URL</label>
+                              <input type="url" className="form-input" placeholder="https://instagram.com/..." value={facultyForm.instagram || ''} onChange={e => setFacultyForm(f => ({...f, instagram: e.target.value}))} />
                             </div>
                             <div className="form-group" style={{ marginBottom: 0, gridColumn: '1 / -1' }}>
                               <label className="form-label">Bio</label>
@@ -2540,7 +2987,7 @@ export default function App() {
                                     {fac.photo ? <img src={fac.photo} alt={fac.name} /> : <span className="profile-initials" style={{ fontSize: '15px' }}>{initials}</span>}
                                   </div>
                                   <div style={{ display: 'flex', gap: '6px' }}>
-                                    <button onClick={() => { setEditingFacultyId(fac.id); setFacultyForm({ name: fac.name, role: fac.role, dept: fac.dept || '', bio: fac.bio || '', photo: fac.photo || '' }); setShowFacultyForm(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px' }}><Edit3 size={14} /></button>
+                                    <button onClick={() => { setEditingFacultyId(fac.id); setFacultyForm({ name: fac.name, role: fac.role, dept: fac.dept || '', bio: fac.bio || '', photo: fac.photo || '', email: fac.email || '', linkedin: fac.linkedin || '', github: fac.github || '', whatsapp: fac.whatsapp || '', instagram: fac.instagram || '' }); setShowFacultyForm(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px' }}><Edit3 size={14} /></button>
                                     <button onClick={() => handleDeleteFaculty(fac.id, fac.name)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff3b30', padding: '4px' }}><Trash2 size={14} /></button>
                                   </div>
                                 </div>
@@ -2831,6 +3278,25 @@ export default function App() {
         <JoinModal 
           onClose={() => setIsJoinModalOpen(false)}
           onSubmitSuccess={handleRegisterMember}
+          showNotification={showNotification}
+        />
+      )}
+
+      {/* SIG Membership Gate Modal */}
+      {isSigJoinModalOpen && activeSigForJoin && (
+        <SigJoinModal
+          sigKey={activeSigForJoin.key}
+          sigTitle={activeSigForJoin.title}
+          onClose={() => { setIsSigJoinModalOpen(false); setActiveSigForJoin(null); }}
+          showNotification={showNotification}
+        />
+      )}
+
+      {/* Event Registration Modal */}
+      {isEventRegisterModalOpen && activeEventForRegister && (
+        <EventRegisterModal
+          event={activeEventForRegister}
+          onClose={() => { setIsEventRegisterModalOpen(false); setActiveEventForRegister(null); }}
           showNotification={showNotification}
         />
       )}

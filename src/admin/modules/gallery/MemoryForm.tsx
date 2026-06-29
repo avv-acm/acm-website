@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { useAuth } from "../../hooks/useAuth";
 import ImageUpload from "../../components/ImageUpload";
+import { loadGallery, saveGallery, loadEvents, genId, auditLog } from "../../lib/db";
 
 interface MemoryFormProps {
   memory?: any;
@@ -11,11 +9,7 @@ interface MemoryFormProps {
 }
 
 export default function MemoryForm({ memory, onSuccess, onCancel }: MemoryFormProps) {
-  const { token } = useAuth();
-  
-  const createMutation = useMutation(api.memories.create);
-  const updateMutation = useMutation(api.memories.update);
-  const events = useQuery(api.events.listAdmin, token ? { token: token! } : "skip");
+  const events = loadEvents();
 
   const [eventId, setEventId] = useState("");
   const [title, setTitle] = useState("");
@@ -80,8 +74,7 @@ export default function MemoryForm({ memory, onSuccess, onCancel }: MemoryFormPr
       .filter((tag) => tag.length > 0);
 
     const payload = {
-      token: token!,
-      eventId: eventId as any,
+      eventId,
       title,
       summary,
       photos: filteredPhotos,
@@ -91,10 +84,15 @@ export default function MemoryForm({ memory, onSuccess, onCancel }: MemoryFormPr
     };
 
     try {
+      const all = loadGallery();
       if (memory) {
-        await updateMutation({ id: memory._id, ...payload });
+        const updated = all.map((m: any) => m._id === memory._id ? { ...m, ...payload } : m);
+        saveGallery(updated);
+        auditLog("UPDATE_MEMORY", "gallery", `Updated memory: ${title}`, "info");
       } else {
-        await createMutation(payload);
+        const newMemory = { _id: genId("mem"), ...payload, createdAt: new Date().toISOString() };
+        saveGallery([...all, newMemory]);
+        auditLog("CREATE_MEMORY", "gallery", `Created memory: ${title}`, "info");
       }
       onSuccess();
     } catch (err: any) {

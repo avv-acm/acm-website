@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { useAuth } from "../../hooks/useAuth";
 import ImageUpload from "../../components/ImageUpload";
+import { loadAdminSigs, saveAdminSigs, genId, auditLog } from "../../lib/db";
 
 interface SigFormProps {
   sig?: any;
@@ -11,11 +9,6 @@ interface SigFormProps {
 }
 
 export default function SigForm({ sig, onSuccess, onCancel }: SigFormProps) {
-  const { token } = useAuth();
-  
-  const createMutation = useMutation(api.sigs.create);
-  const updateMutation = useMutation(api.sigs.update);
-
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
@@ -70,7 +63,6 @@ export default function SigForm({ sig, onSuccess, onCancel }: SigFormProps) {
     setSubmitting(true);
 
     const payload = {
-      token: token!,
       name,
       slug,
       description,
@@ -84,10 +76,15 @@ export default function SigForm({ sig, onSuccess, onCancel }: SigFormProps) {
     };
 
     try {
+      const all = loadAdminSigs();
       if (sig) {
-        await updateMutation({ id: sig._id, ...payload });
+        const updated = all.map((s: any) => s._id === sig._id ? { ...s, ...payload } : s);
+        saveAdminSigs(updated);
+        auditLog("UPDATE_SIG", "sigs", `Updated SIG: ${name}`, "info");
       } else {
-        await createMutation(payload);
+        const newSig = { _id: genId("sig"), ...payload, createdAt: new Date().toISOString() };
+        saveAdminSigs([...all, newSig]);
+        auditLog("CREATE_SIG", "sigs", `Created SIG: ${name}`, "info");
       }
       onSuccess();
     } catch (err: any) {

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { useAuth } from "../../hooks/useAuth";
 import ImageUpload from "../../components/ImageUpload";
+import { genId, auditLog } from "../../lib/db";
 import { Globe } from "lucide-react";
 
 interface PersonFormProps {
@@ -22,12 +20,6 @@ export default function PersonForm({
   onCancel,
   currentCount,
 }: PersonFormProps) {
-  const { token } = useAuth();
-  
-  const addCommittee = useMutation(api.sig_people.addCommittee);
-  const updateCommittee = useMutation(api.sig_people.updateCommittee);
-  const addFaculty = useMutation(api.sig_people.addFaculty);
-  const updateFaculty = useMutation(api.sig_people.updateFaculty);
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
@@ -83,59 +75,33 @@ export default function PersonForm({
     };
 
     try {
-      if (type === "committee") {
-        if (person) {
-          await updateCommittee({
-            token: token!,
-            id: person._id,
-            name,
-            role,
-            bio: bio || undefined,
-            email: email || undefined,
-            imageUrl: imageUrl || undefined,
-            socialLinks,
-            displayOrder: person.displayOrder,
-          });
-        } else {
-          await addCommittee({
-            token: token!,
-            sigId,
-            name,
-            role,
-            bio: bio || undefined,
-            email: email || undefined,
-            imageUrl: imageUrl || undefined,
-            socialLinks,
-            displayOrder: currentCount,
-          });
-        }
+      const sigPeopleKey = `acm_sig_people_${sigId}`;
+      const raw = localStorage.getItem(sigPeopleKey);
+      const data = raw ? JSON.parse(raw) : { committee: [], faculty: [] };
+
+      const payload = {
+        name,
+        role,
+        department: type === "faculty" ? (department || undefined) : undefined,
+        bio: bio || undefined,
+        email: email || undefined,
+        imageUrl: imageUrl || undefined,
+        socialLinks,
+      };
+
+      if (person) {
+        // Update existing person
+        data[type] = data[type].map((p: any) =>
+          p._id === person._id ? { ...p, ...payload } : p
+        );
+        auditLog("UPDATE_SIG_PERSON", "sigs", `Updated ${type} ${name}`, "info");
       } else {
-        if (person) {
-          await updateFaculty({
-            token: token!,
-            id: person._id,
-            name,
-            role,
-            department: department || undefined,
-            bio: bio || undefined,
-            imageUrl: imageUrl || undefined,
-            socialLinks,
-            displayOrder: person.displayOrder,
-          });
-        } else {
-          await addFaculty({
-            token: token!,
-            sigId,
-            name,
-            role,
-            department: department || undefined,
-            bio: bio || undefined,
-            imageUrl: imageUrl || undefined,
-            socialLinks,
-            displayOrder: currentCount,
-          });
-        }
+        // Add new person
+        data[type] = [...data[type], { _id: genId("person"), ...payload, displayOrder: currentCount }];
+        auditLog("ADD_SIG_PERSON", "sigs", `Added ${type} ${name}`, "info");
       }
+
+      localStorage.setItem(sigPeopleKey, JSON.stringify(data));
       onSuccess();
     } catch (err: any) {
       console.error(err);

@@ -74,7 +74,7 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
- * Validate a student ID format (e.g., AM.EN.U4CSE23005).
+ * Validate a student ID format (e.g., NC.SC.U4CSE24229).
  */
 export function isValidStudentId(id: string): boolean {
   if (typeof id !== "string") return false;

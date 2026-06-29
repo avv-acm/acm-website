@@ -1,22 +1,24 @@
-import React, { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { useAuth } from "../../hooks/useAuth";
+import React, { useState, useEffect } from "react";
 import { useToast } from "../../components/Toast";
 import Modal from "../../components/Modal";
 import PersonForm from "./PersonForm";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  User, 
-  ArrowUp, 
-  ArrowDown, 
-  Github, 
-  Linkedin, 
-  Globe 
-} from "lucide-react";
+import { dbLoad, dbSave, genId, auditLog } from "../../lib/db";
+import { ArrowLeft, Plus, Edit2, Trash2, User, ArrowUp, ArrowDown } from "lucide-react";
+
+// People stored per-sig: acm_sig_people_<sigId>
+function sigPeopleKey(sigId: string) { return `acm_sig_people_${sigId}`; }
+
+function loadPeople(sigId: string) {
+  const raw = localStorage.getItem(sigPeopleKey(sigId));
+  if (raw) {
+    try { return JSON.parse(raw); } catch {}
+  }
+  return { committee: [], faculty: [] };
+}
+
+function savePeople(sigId: string, data: any) {
+  localStorage.setItem(sigPeopleKey(sigId), JSON.stringify(data));
+}
 
 interface SigDetailProps {
   sig: any;
@@ -24,26 +26,20 @@ interface SigDetailProps {
 }
 
 export default function SigDetail({ sig, onBack }: SigDetailProps) {
-  const { token } = useAuth();
   const { success, error } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"committee" | "faculty">("committee");
   const [editingPerson, setEditingPerson] = useState<any>(null);
+  const [people, setPeople] = useState<{ committee: any[]; faculty: any[] }>({ committee: [], faculty: [] });
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Queries
-  const people = useQuery(api.sig_people.listPeopleBySig, { sigId: sig._id });
+  useEffect(() => {
+    setPeople(loadPeople(sig._id));
+  }, [sig._id, refreshKey]);
 
-  // Mutations
-  const addCommitteeMutation = useMutation(api.sig_people.addCommittee);
-  const updateCommitteeMutation = useMutation(api.sig_people.updateCommittee);
-  const removeCommitteeMutation = useMutation(api.sig_people.removeCommittee);
+  const refresh = () => setRefreshKey((k) => k + 1);
 
-  const addFacultyMutation = useMutation(api.sig_people.addFaculty);
-  const updateFacultyMutation = useMutation(api.sig_people.updateFaculty);
-  const removeFacultyMutation = useMutation(api.sig_people.removeFaculty);
-
-  // Handlers for Add/Edit
   const handleAddPerson = (type: "committee" | "faculty") => {
     setModalType(type);
     setEditingPerson(null);
@@ -56,87 +52,68 @@ export default function SigDetail({ sig, onBack }: SigDetailProps) {
     setIsModalOpen(true);
   };
 
-  // Handlers for Delete
-  const handleDeletePerson = async (id: any, name: string, type: "committee" | "faculty") => {
-    if (!window.confirm(`Are you sure you want to remove ${name} from this SIG?`)) return;
-
-    try {
-      if (type === "committee") {
-        await removeCommitteeMutation({ token: token!, id });
-      } else {
-        await removeFacultyMutation({ token: token!, id });
-      }
-      success("Member Removed", `Successfully removed ${name}.`);
-    } catch (err: any) {
-      error("Action Failed", err.message || `Could not remove member.`);
-    }
+  const handleDeletePerson = (id: string, name: string, type: "committee" | "faculty") => {
+    if (!window.confirm(`Remove ${name} from this SIG?`)) return;
+    const data = loadPeople(sig._id);
+    data[type] = data[type].filter((p: any) => p._id !== id);
+    savePeople(sig._id, data);
+    auditLog("REMOVE_SIG_PERSON", "sigs", `Removed ${name} from ${sig.name} ${type}`, "info");
+    success("Member Removed", `Successfully removed ${name}.`);
+    refresh();
   };
 
-  // Re-ordering logic
-  const handleMoveOrder = async (
-    person: any, 
-    direction: "up" | "down", 
-    type: "committee" | "faculty"
-  ) => {
-    if (!people) return;
-    const list = type === "committee" ? [...people.committee] : [...people.faculty];
-    const index = list.findIndex((p) => p._id === person._id);
+  const handleMoveOrder = (person: any, direction: "up" | "down", type: "committee" | "faculty") => {
+    const data = loadPeople(sig._id);
+    const list = [...data[type]];
+    const index = list.findIndex((p: any) => p._id === person._id);
     if (index === -1) return;
-
     const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= list.length) return; // Out of bounds
-
-    // Swap displayOrder values
-    const target = list[newIndex];
-    try {
-      const updateMut = type === "committee" ? updateCommitteeMutation : updateFacultyMutation;
-      
-      await updateMut({
-        token: token!,
-        id: person._id,
-        name: person.name,
-        role: person.role,
-        bio: person.bio,
-        email: person.email,
-        imageUrl: person.imageUrl,
-        socialLinks: person.socialLinks,
-        displayOrder: target.displayOrder
-      });
-
-      await updateMut({
-        token: token!,
-        id: target._id,
-        name: target.name,
-        role: target.role,
-        bio: target.bio,
-        email: target.email,
-        imageUrl: target.imageUrl,
-        socialLinks: target.socialLinks,
-        displayOrder: person.displayOrder
-      });
-
-      success("Order Changed", "Successfully reordered team list.");
-    } catch (err: any) {
-      error("Order Failed", err.message || "Failed to update member ordering.");
-    }
+    if (newIndex < 0 || newIndex >= list.length) return;
+    [list[index], list[newIndex]] = [list[newIndex], list[index]];
+    data[type] = list;
+    savePeople(sig._id, data);
+    refresh();
   };
+
+  const renderPersonRow = (person: any, index: number, type: "committee" | "faculty", listLength: number) => (
+    <div key={person._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", background: "var(--bg-tertiary)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", background: "var(--bg-elevated)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {person.imageUrl ? (
+            <img src={person.imageUrl} alt={person.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <User size={18} style={{ color: "var(--text-tertiary)" }} />
+          )}
+        </div>
+        <div>
+          <div style={{ fontSize: "14px", fontWeight: 600 }}>{person.name}</div>
+          <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+            {person.role} {type === "faculty" && person.department ? `(${person.department})` : ""}
+          </div>
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <button onClick={() => handleMoveOrder(person, "up", type)} disabled={index === 0} className="btn btn-secondary" style={{ padding: "4px", borderRadius: "6px" }}><ArrowUp size={12} /></button>
+        <button onClick={() => handleMoveOrder(person, "down", type)} disabled={index === listLength - 1} className="btn btn-secondary" style={{ padding: "4px", borderRadius: "6px" }}><ArrowDown size={12} /></button>
+        <button onClick={() => handleEditPerson(person, type)} className="btn btn-secondary" style={{ padding: "6px", borderRadius: "8px" }}><Edit2 size={12} /></button>
+        <button onClick={() => handleDeletePerson(person._id, person.name, type)} className="btn btn-secondary" style={{ padding: "6px", borderRadius: "8px", color: "#ff453a" }}><Trash2 size={12} /></button>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-      {/* Detail Header / Back */}
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         <button onClick={onBack} className="btn btn-secondary" style={{ padding: "8px 12px" }}>
           <ArrowLeft size={16} /> Back
         </button>
         <div>
           <h2 style={{ fontSize: "24px", fontWeight: 800 }}>{sig.name} Detail</h2>
-          <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
-            Category URL: /{sig.slug} | Focus: {sig.focusArea}
-          </span>
+          <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Focus: {sig.focusArea} | Members: {sig.membersCount}</span>
         </div>
       </div>
 
-      {/* ─── Faculty Section ─────────────────────────────────── */}
+      {/* Faculty Section */}
       <div className="glass-panel" style={{ padding: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h3 style={{ fontSize: "16px", fontWeight: 700 }}>Faculty Mentors & Advisors</h3>
@@ -144,89 +121,16 @@ export default function SigDetail({ sig, onBack }: SigDetailProps) {
             <Plus size={14} /> Add Faculty Mentor
           </button>
         </div>
-
-        {!people ? (
-          <div>Loading faculty...</div>
-        ) : people.faculty.length === 0 ? (
-          <div style={{ color: "var(--text-tertiary)", fontSize: "14px", textAlign: "center", padding: "20px" }}>
-            No faculty advisors assigned yet.
-          </div>
+        {people.faculty.length === 0 ? (
+          <div style={{ color: "var(--text-tertiary)", fontSize: "14px", textAlign: "center", padding: "20px" }}>No faculty advisors assigned yet.</div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {people.faculty.map((mentor, index) => (
-              <div 
-                key={mentor._id} 
-                style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  justifyContent: "space-between", 
-                  padding: "12px 16px", 
-                  border: "1px solid var(--border)", 
-                  borderRadius: "var(--radius-md)",
-                  background: "var(--bg-tertiary)"
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                  <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
-                    {mentor.imageUrl ? (
-                      <img src={mentor.imageUrl} alt={mentor.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    ) : (
-                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyCenter: "center", color: "var(--text-tertiary)" }}>
-                        <User size={18} />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "14px", fontWeight: 600 }}>{mentor.name}</div>
-                    <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-                      {mentor.role} {mentor.department ? `(${mentor.department})` : ""}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  {/* Order control */}
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    <button 
-                      onClick={() => handleMoveOrder(mentor, "up", "faculty")}
-                      disabled={index === 0}
-                      className="btn btn-secondary" 
-                      style={{ padding: "4px", borderRadius: "6px" }}
-                    >
-                      <ArrowUp size={12} />
-                    </button>
-                    <button 
-                      onClick={() => handleMoveOrder(mentor, "down", "faculty")}
-                      disabled={index === people.faculty.length - 1}
-                      className="btn btn-secondary" 
-                      style={{ padding: "4px", borderRadius: "6px" }}
-                    >
-                      <ArrowDown size={12} />
-                    </button>
-                  </div>
-
-                  <button 
-                    onClick={() => handleEditPerson(mentor, "faculty")}
-                    className="btn btn-secondary" 
-                    style={{ padding: "6px", borderRadius: "8px" }}
-                  >
-                    <Edit2 size={12} />
-                  </button>
-                  <button 
-                    onClick={() => handleDeletePerson(mentor._id, mentor.name, "faculty")}
-                    className="btn btn-secondary" 
-                    style={{ padding: "6px", borderRadius: "8px", color: "#ff453a" }}
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              </div>
-            ))}
+            {people.faculty.map((mentor, i) => renderPersonRow(mentor, i, "faculty", people.faculty.length))}
           </div>
         )}
       </div>
 
-      {/* ─── Committee Section ───────────────────────────────── */}
+      {/* Committee Section */}
       <div className="glass-panel" style={{ padding: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h3 style={{ fontSize: "16px", fontWeight: 700 }}>Student Committee Leads & Coordinators</h3>
@@ -234,82 +138,11 @@ export default function SigDetail({ sig, onBack }: SigDetailProps) {
             <Plus size={14} /> Add Coordinator
           </button>
         </div>
-
-        {!people ? (
-          <div>Loading committee...</div>
-        ) : people.committee.length === 0 ? (
-          <div style={{ color: "var(--text-tertiary)", fontSize: "14px", textAlign: "center", padding: "20px" }}>
-            No student coordinators assigned yet.
-          </div>
+        {people.committee.length === 0 ? (
+          <div style={{ color: "var(--text-tertiary)", fontSize: "14px", textAlign: "center", padding: "20px" }}>No student coordinators assigned yet.</div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {people.committee.map((member, index) => (
-              <div 
-                key={member._id} 
-                style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  justifyContent: "space-between", 
-                  padding: "12px 16px", 
-                  border: "1px solid var(--border)", 
-                  borderRadius: "var(--radius-md)",
-                  background: "var(--bg-tertiary)"
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                  <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
-                    {member.imageUrl ? (
-                      <img src={member.imageUrl} alt={member.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    ) : (
-                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyCenter: "center", color: "var(--text-tertiary)" }}>
-                        <User size={18} />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "14px", fontWeight: 600 }}>{member.name}</div>
-                    <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>{member.role}</div>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  {/* Order control */}
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    <button 
-                      onClick={() => handleMoveOrder(member, "up", "committee")}
-                      disabled={index === 0}
-                      className="btn btn-secondary" 
-                      style={{ padding: "4px", borderRadius: "6px" }}
-                    >
-                      <ArrowUp size={12} />
-                    </button>
-                    <button 
-                      onClick={() => handleMoveOrder(member, "down", "committee")}
-                      disabled={index === people.committee.length - 1}
-                      className="btn btn-secondary" 
-                      style={{ padding: "4px", borderRadius: "6px" }}
-                    >
-                      <ArrowDown size={12} />
-                    </button>
-                  </div>
-
-                  <button 
-                    onClick={() => handleEditPerson(member, "committee")}
-                    className="btn btn-secondary" 
-                    style={{ padding: "6px", borderRadius: "8px" }}
-                  >
-                    <Edit2 size={12} />
-                  </button>
-                  <button 
-                    onClick={() => handleDeletePerson(member._id, member.name, "committee")}
-                    className="btn btn-secondary" 
-                    style={{ padding: "6px", borderRadius: "8px", color: "#ff453a" }}
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              </div>
-            ))}
+            {people.committee.map((member, i) => renderPersonRow(member, i, "committee", people.committee.length))}
           </div>
         )}
       </div>
@@ -327,17 +160,11 @@ export default function SigDetail({ sig, onBack }: SigDetailProps) {
           person={editingPerson}
           onSuccess={() => {
             setIsModalOpen(false);
-            success(
-              editingPerson ? "Details Updated" : "Added Successfully",
-              `Saved team member profile changes.`
-            );
+            success(editingPerson ? "Details Updated" : "Added Successfully", "Saved team member profile changes.");
+            refresh();
           }}
           onCancel={() => setIsModalOpen(false)}
-          currentCount={
-            people 
-              ? (modalType === "committee" ? people.committee.length : people.faculty.length) 
-              : 0
-          }
+          currentCount={modalType === "committee" ? people.committee.length : people.faculty.length}
         />
       </Modal>
     </div>

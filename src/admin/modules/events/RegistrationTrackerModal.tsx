@@ -1,7 +1,4 @@
 import React, { useState, useMemo } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { useAuth } from "../../hooks/useAuth";
 import Modal from "../../components/Modal";
 import DataTable from "../../components/DataTable";
 import { Download, Search, Filter } from "lucide-react";
@@ -12,12 +9,10 @@ interface RegistrationTrackerModalProps {
 }
 
 export default function RegistrationTrackerModal({ event, onClose }: RegistrationTrackerModalProps) {
-  const { token } = useAuth();
-  
-  const registrations = useQuery(
-    api.events.getRegistrations,
-    token ? { token, eventId: event._id } : "skip"
-  );
+  // Load registrations from localStorage: acm_event_registrations_<eventId>
+  const regKey = `acm_event_registrations_${event._id}`;
+  const rawReg = localStorage.getItem(regKey);
+  const registrations: any[] = rawReg ? JSON.parse(rawReg) : [];
 
   const [search, setSearch] = useState("");
   const [yearFilter, setYearFilter] = useState("all");

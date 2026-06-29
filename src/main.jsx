@@ -1,39 +1,37 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ConvexProvider, ConvexReactClient } from 'convex/react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import './admin/admin.css'
 import App from './App.jsx'
 
-// Admin Wrappers & Components
+// Admin Components (no Convex dependency)
 import { AuthProvider } from './admin/hooks/useAuth'
 import { ToastProvider } from './admin/components/Toast'
 import AuthGate from './admin/components/AuthGate'
 import AdminApp from './admin/AdminApp'
 
-const convexUrl = import.meta.env.VITE_CONVEX_URL;
-const convex = convexUrl ? new ConvexReactClient(convexUrl) : null;
-
 const root = createRoot(document.getElementById('root'));
+
+// Admin route — fully self-contained (localStorage, no Convex needed)
+function AdminRoute() {
+  return (
+    <AuthProvider>
+      <ToastProvider>
+        <AuthGate>
+          <AdminApp />
+        </AuthGate>
+      </ToastProvider>
+    </AuthProvider>
+  );
+}
 
 function RouterConfig() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Admin Route Guarded by Auth & Toast */}
-        <Route
-          path="/admin/*"
-          element={
-            <AuthProvider>
-              <ToastProvider>
-                <AuthGate>
-                  <AdminApp />
-                </AuthGate>
-              </ToastProvider>
-            </AuthProvider>
-          }
-        />
+        {/* Admin Route — localStorage-based, no backend required */}
+        <Route path="/admin/*" element={<AdminRoute />} />
         {/* Public Site Routes */}
         <Route path="/*" element={<App />} />
       </Routes>
@@ -41,19 +39,8 @@ function RouterConfig() {
   );
 }
 
-if (convex) {
-  root.render(
-    <StrictMode>
-      <ConvexProvider client={convex}>
-        <RouterConfig />
-      </ConvexProvider>
-    </StrictMode>,
-  );
-} else {
-  console.warn('[Convex] VITE_CONVEX_URL not set — running without Convex backend');
-  root.render(
-    <StrictMode>
-      <RouterConfig />
-    </StrictMode>,
-  );
-}
+root.render(
+  <StrictMode>
+    <RouterConfig />
+  </StrictMode>,
+);

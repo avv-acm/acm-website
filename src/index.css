@@ -665,7 +665,7 @@ a:hover {
   height: auto;
   pointer-events: none;
   z-index: 1;
-  transition: opacity 0.3s ease, filter 0.3s ease, mix-blend-mode 0.3s ease;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s cubic-bezier(0.16, 1, 0.3, 1), mix-blend-mode 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Default / Explicit Dark Mode */
@@ -677,8 +677,8 @@ a:hover {
 }
 
 :root.light .footer-campus-sketch {
-  opacity: 0.22;
-  filter: grayscale(1) brightness(0.9) contrast(1.1);
+  opacity: 1;
+  filter: grayscale(1) contrast(0.15) brightness(1.8);
   mix-blend-mode: multiply;
 }
 
@@ -695,7 +695,8 @@ a:hover {
 }
 
 :root.light .footer:hover .footer-campus-sketch {
-  opacity: 0.35;
+  opacity: 1;
+  filter: grayscale(1) contrast(0.22) brightness(1.7);
 }
 
 :root.dim .footer:hover .footer-campus-sketch {
@@ -751,17 +752,15 @@ a:hover {
   border-radius: 99px;
   padding: 4px;
   margin: 0;
-  width: fit-content;
+  width: 104px !important;
+  height: 36px !important;
+  flex-shrink: 0 !important;
   border-top-color: rgba(255, 255, 255, 0.08);
   border-bottom-color: rgba(0, 0, 0, 0.2);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.15);
   box-sizing: border-box;
   filter: none;
-  overflow: visible;
-}
-
-.switcher.is-transitioning {
-  filter: url(#switcher);
+  overflow: hidden;
 }
 
 .switcher__legend {
@@ -1125,7 +1124,7 @@ a:hover {
   border-radius: 20px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.1);
   color: #fff;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ios-glass-card:hover {
@@ -1432,14 +1431,14 @@ a:hover {
   left: 0;
   top: 100%;
   width: 100%;
-  background: rgba(var(--bg-secondary-rgb), 0.85);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(var(--bg-secondary-rgb), 0.22);
+  backdrop-filter: blur(64px) saturate(220%);
+  -webkit-backdrop-filter: blur(64px) saturate(220%);
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   z-index: 99;
   transform-origin: top;
-  animation: megaSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: megaSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   padding: 40px 0;
 }
 
@@ -2198,4 +2197,200 @@ a:hover {
   object-fit: cover;
   border-radius: var(--radius-sm);
   margin-top: 10px;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--bg-secondary, #161617);
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 140, 0.4);
+  border-radius: 8px;
+  border: 2px solid var(--bg-secondary, #161617);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--accent, #0071e3);
+}
+
+/* Firefox compatibility */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 140, 140, 0.4) var(--bg-secondary, #161617);
+}
+
+/* ==========================================================================
+   NAVBAR HOVER BLUR STYLING
+   ========================================================================== */
+.navbar-hovered .glass-filter {
+  backdrop-filter: blur(32px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(200%) !important;
+  background: rgba(var(--bg-secondary-rgb), 0.5) !important;
+}
+
+/* ==========================================================================
+   LEADERSHIP PREMIUM CARD REDESIGN
+   ========================================================================== */
+.leadership-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  height: 380px;
+  min-height: 380px;
+  box-shadow: var(--card-shadow);
+  transition: var(--transition-smooth);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.leadership-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--bg-secondary);
+  z-index: -2;
+  transition: var(--transition-smooth);
+}
+
+.leadership-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.leadership-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.15), rgba(var(--accent-rgb), 0.03));
+}
+
+.leadership-initials {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.leadership-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0) 100%);
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.leadership-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--accent);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.leadership-card:hover .leadership-photo {
+  transform: scale(1.05);
+}
+
+.leadership-card:hover .leadership-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.leadership-role {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.leadership-name {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.leadership-desc {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12.5px;
+  line-height: 1.4;
+  margin-bottom: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.leadership-socials {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.leadership-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff !important;
+  transition: var(--transition-smooth);
+}
+
+.leadership-social-btn:hover {
+  background: var(--accent);
+  transform: scale(1.12);
+}
+
+/* ==========================================================================
+   MOBILE FOOTER ALIGNMENT
+   ========================================================================== */
+@media (max-width: 768px) {
+  .footer-links {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 32px !important;
+  }
+  .footer-brand-section {
+    max-width: 100% !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .footer-copy {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 16px !important;
+  }
+  .footer-copy div {
+    margin-left: 0 !important;
+  }
+  .footer-copy a {
+    margin: 0 8px !important;
+  }
+  .footer-campus-sketch {
+    display: none !important;
+  }
 }

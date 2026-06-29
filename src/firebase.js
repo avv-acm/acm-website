@@ -20,14 +20,14 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-const DB_KEY = 'acm_amrita_members_db';
+const DB_KEY = 'acm_portal_members';
 
 const initialMockMembers = [
-  { id: 'ACM-129034', name: 'Aswin Kumar', email: 'aswin@am.amrita.edu', rollNo: 'AM.EN.U4CSE23005', interest: 'web', joinedAt: '2026-03-12T10:30:00Z' },
-  { id: 'ACM-903482', name: 'Nisha Sundar', email: 'nisha@am.amrita.edu', rollNo: 'AM.EN.U4CSE23114', interest: 'ai-ml', joinedAt: '2026-04-01T15:20:00Z' },
-  { id: 'ACM-549832', name: 'Adithya R', email: 'adithya@am.amrita.edu', rollNo: 'AM.EN.U4ECE23012', interest: 'cp', joinedAt: '2026-04-18T09:12:00Z' },
-  { id: 'ACM-763421', name: 'Maria Sharon', email: 'maria@am.amrita.edu', rollNo: 'AM.EN.U4CSE23055', interest: 'ui-ux', joinedAt: '2026-05-02T14:45:00Z' },
-  { id: 'ACM-219803', name: 'Rahul Krishnan', email: 'rahul@am.amrita.edu', rollNo: 'AM.EN.U4CSE23087', interest: 'cyber', joinedAt: '2026-05-20T11:00:00Z' }
+  { _id: 'ACM-129034', name: 'Aswin Kumar', email: 'aswin@am.amrita.edu', rollNo: 'AM.EN.U4CSE23005', studentId: 'AM.EN.U4CSE23005', year: '3rd Year', department: 'Computer Science and Engineering', interest: 'web', status: 'active', type: 'student', role: 'Member', joinedAt: '2026-03-12T10:30:00Z' },
+  { _id: 'ACM-903482', name: 'Nisha Sundar', email: 'nisha@am.amrita.edu', rollNo: 'AM.EN.U4CSE23114', studentId: 'AM.EN.U4CSE23114', year: '3rd Year', department: 'Computer Science and Engineering', interest: 'ai-ml', status: 'active', type: 'student', role: 'Member', joinedAt: '2026-04-01T15:20:00Z' },
+  { _id: 'ACM-549832', name: 'Adithya R', email: 'adithya@am.amrita.edu', rollNo: 'AM.EN.U4ECE23012', studentId: 'AM.EN.U4ECE23012', year: '3rd Year', department: 'Electrical and Communication Engineering', interest: 'cp', status: 'active', type: 'student', role: 'Member', joinedAt: '2026-04-18T09:12:00Z' },
+  { _id: 'ACM-763421', name: 'Maria Sharon', email: 'maria@am.amrita.edu', rollNo: 'AM.EN.U4CSE23055', studentId: 'AM.EN.U4CSE23055', year: '3rd Year', department: 'Computer Science and Engineering', interest: 'ui-ux', status: 'active', type: 'student', role: 'Member', joinedAt: '2026-05-02T14:45:00Z' },
+  { _id: 'ACM-219803', name: 'Rahul Krishnan', email: 'rahul@am.amrita.edu', rollNo: 'AM.EN.U4CSE23087', studentId: 'AM.EN.U4CSE23087', year: '3rd Year', department: 'Computer Science and Engineering', interest: 'cyber', status: 'active', type: 'student', role: 'Member', joinedAt: '2026-05-20T11:00:00Z' }
 ];
 
 // Determine if valid Firebase config is provided
@@ -103,29 +103,46 @@ export const getMembersFromDB = async () => {
 };
 
 export const registerMemberInDB = async (memberData) => {
+  const normalizedMember = {
+    _id: memberData._id || memberData.id || `ACM-${Math.floor(100000 + Math.random() * 900000)}`,
+    studentId: memberData.rollNo || memberData.studentId,
+    status: 'active',
+    type: 'student',
+    role: 'Member',
+    ...memberData
+  };
+
   if (useFirebase && db) {
     try {
-      const docRef = await addDoc(collection(db, 'members'), {
-        name: memberData.name,
-        email: memberData.email,
-        rollNo: memberData.rollNo,
-        interest: memberData.interest,
-        joinedAt: memberData.joinedAt || new Date().toISOString()
-      });
+      const docRef = await addDoc(collection(db, 'members'), normalizedMember);
       console.log('[Firebase] Member registered successfully with Firestore ID:', docRef.id);
-      return { id: docRef.id, ...memberData };
+      return { id: docRef.id, ...normalizedMember };
     } catch (error) {
       console.error('[Firebase] Failed to write member to Firestore. Saving to local storage fallback...', error);
       const local = getLocalMembers();
-      const updated = [memberData, ...local];
+      const updated = [normalizedMember, ...local];
       saveLocalMembers(updated);
-      return memberData;
+      return normalizedMember;
     }
   } else {
     const local = getLocalMembers();
-    const updated = [memberData, ...local];
+    const updated = [normalizedMember, ...local];
     saveLocalMembers(updated);
-    return memberData;
+    // Write an audit log for the admin to see immediately
+    try {
+      const logsRaw = localStorage.getItem('acm_audit_logs');
+      const logs = logsRaw ? JSON.parse(logsRaw) : [];
+      const newLog = {
+        _id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        action: 'MEMBER_JOIN_REQUEST',
+        resource: 'members',
+        details: `Student ${normalizedMember.name} (${normalizedMember.studentId}) registered for Amrita ACM Chapter.`,
+        severity: 'info',
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('acm_audit_logs', JSON.stringify([newLog, ...logs].slice(0, 200)));
+    } catch (err) {}
+    return normalizedMember;
   }
 };
 
@@ -140,6 +157,8 @@ export const addBulkMembersToDB = async (membersList) => {
           email: member.email,
           rollNo: member.rollNo,
           interest: member.interest,
+          year: member.year || '1st Year',
+          department: member.department || 'Computer Science and Engineering',
           joinedAt: member.joinedAt || new Date().toISOString()
         });
       });
@@ -174,6 +193,8 @@ async function seedInitialData() {
         email: member.email,
         rollNo: member.rollNo,
         interest: member.interest,
+        year: member.year,
+        department: member.department,
         joinedAt: member.joinedAt
       });
     });

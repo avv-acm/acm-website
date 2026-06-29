@@ -154,7 +154,8 @@ export default function DataTable<T>({
               </tr>
             ) : (
               paginatedData.map((row, i) => {
-                const rowId = getRowId ? getRowId(row) : String(i);
+                const computedRowId = getRowId ? getRowId(row) : null;
+                const rowId = computedRowId ? computedRowId : `row-${i}`;
                 return (
                   <tr key={rowId}>
                     {onSelectionChange && getRowId && (

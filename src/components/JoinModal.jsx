@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Captcha from './Captcha';
-import { UserPlus, Sparkles, User, Mail, Hash, Code } from 'lucide-react';
+import { UserPlus, Sparkles, User, Mail, Hash, Code, Users } from 'lucide-react';
 
-export default function JoinModal({ onClose, onSubmitSuccess, showNotification }) {
+export default function JoinModal({ onClose, onSubmitSuccess, showNotification, defaultInterest }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     rollNo: '',
-    interest: 'web'
+    year: '1st Year',
+    department: 'Computer Science and Engineering',
+    interest: defaultInterest || 'web'
   });
   
   const [errors, setErrors] = useState({});
@@ -25,15 +27,15 @@ export default function JoinModal({ onClose, onSubmitSuccess, showNotification }
 
   const validate = () => {
     const tempErrors = {};
-    if (!formData.name.trim()) tempErrors.name = 'Name is required.';
+    if (!formData.name.trim()) tempErrors.name = 'Full name is required.';
     
     if (!formData.email.trim()) {
       tempErrors.email = 'Email is required.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       tempErrors.email = 'Invalid email format.';
-    } else if (!formData.email.endsWith('am.amrita.edu') && !formData.email.endsWith('gmail.com')) {
+    } else if (!formData.email.toLowerCase().endsWith('nc.students.amrita.edu') && !formData.email.endsWith('gmail.com')) {
       // Amrita institutional email check
-      tempErrors.email = 'Please use Amrita email (@am.amrita.edu) or Gmail.';
+      tempErrors.email = 'Please use Amrita email (@nc.students.amrita.edu) or Gmail.';
     }
 
     if (!formData.rollNo.trim()) {
@@ -48,7 +50,48 @@ export default function JoinModal({ onClose, onSubmitSuccess, showNotification }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let updatedData = { ...formData, [name]: value };
+
+    if (name === 'email') {
+      const emailVal = value.trim().toUpperCase();
+      const rollMatch = emailVal.match(/^([A-Z0-9.-]+)@NC\.STUDENTS\.AMRITA\.EDU$/i);
+      if (rollMatch) {
+        const roll = rollMatch[1];
+        updatedData.rollNo = roll;
+        
+        // Parse year and department from roll: NC.SC.U4CSE24229
+        const match = roll.match(/U4([A-Z]+)(\d{2})\d*/i);
+        if (match) {
+          const deptCode = match[1].toUpperCase();
+          const batchShort = parseInt(match[2]);
+          const batchYear = 2000 + batchShort;
+          const currentYear = new Date().getFullYear();
+          const currentMonth = new Date().getMonth();
+          let academicYear = currentYear;
+          if (currentMonth < 6) academicYear -= 1; // Academic year changes around July
+          let yearNum = academicYear - batchYear + 1;
+          if (yearNum < 1) yearNum = 1;
+          if (yearNum > 4) yearNum = 4;
+          
+          const yearMap = {
+            1: '1st Year',
+            2: '2nd Year',
+            3: '3rd Year',
+            4: '4th Year'
+          };
+          updatedData.year = yearMap[yearNum] || '1st Year';
+          
+          const deptMap = {
+            'CSE': 'Computer Science and Engineering',
+            'AID': 'Artificial Intelligence and Data Science',
+            'ECE': 'Electronics Communication Engineering'
+          };
+          updatedData.department = deptMap[deptCode] || 'Computer Science and Engineering';
+        }
+      }
+    }
+
+    setFormData(updatedData);
     // Clear validation error when editing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
@@ -102,7 +145,7 @@ export default function JoinModal({ onClose, onSubmitSuccess, showNotification }
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <div className="form-group">
-            <label className="form-label" htmlFor="name">Full Name</label>
+            <label className="form-label" htmlFor="name">Member 1 — Full Name</label>
             <div style={styles.inputWrapper}>
               <User size={16} style={styles.inputIcon} />
               <input
@@ -111,7 +154,7 @@ export default function JoinModal({ onClose, onSubmitSuccess, showNotification }
                 type="text"
                 className="form-input"
                 style={styles.input}
-                placeholder="John Doe"
+                placeholder="Sreeja Veeramalla"
                 value={formData.name}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
@@ -130,7 +173,7 @@ export default function JoinModal({ onClose, onSubmitSuccess, showNotification }
                 type="text"
                 className="form-input"
                 style={styles.input}
-                placeholder="name@am.amrita.edu"
+                placeholder="NC.SC.U4CSE24229@nc.students.amrita.edu"
                 value={formData.email}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
@@ -149,13 +192,54 @@ export default function JoinModal({ onClose, onSubmitSuccess, showNotification }
                 type="text"
                 className="form-input"
                 style={styles.input}
-                placeholder="AM.EN.U4CSE23001"
+                placeholder="NC.SC.U4CSE24229"
                 value={formData.rollNo}
                 onChange={handleInputChange}
                 disabled={isSubmitting}
               />
             </div>
             {errors.rollNo && <span style={styles.errorText}>{errors.rollNo}</span>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="year">Year of Study</label>
+            <div style={styles.inputWrapper}>
+              <Sparkles size={16} style={styles.inputIcon} />
+              <select
+                id="year"
+                name="year"
+                className="form-input"
+                style={styles.select}
+                value={formData.year}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              >
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="department">Department</label>
+            <div style={styles.inputWrapper}>
+              <User size={16} style={styles.inputIcon} />
+              <select
+                id="department"
+                name="department"
+                className="form-input"
+                style={styles.select}
+                value={formData.department}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              >
+                <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                <option value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</option>
+                <option value="Electrical and Communication Engineering">Electrical and Communication Engineering</option>
+              </select>
+            </div>
           </div>
 
           <div className="form-group">
