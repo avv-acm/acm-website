@@ -261,6 +261,22 @@ export default defineSchema({
     .index("by_eventId", ["eventId"])
     .index("by_published", ["published"]),
 
+  // ─── Registrations (Chapter Membership) ───────────────────
+  registrations: defineTable({
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    department: v.string(),
+    year: v.string(),
+    interests: v.array(v.string()),
+    agreedToTerms: v.boolean(),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
+    registeredAt: v.string(),
+  })
+    .index("by_email", ["email"])
+    .index("by_status", ["status"])
+    .index("by_registeredAt", ["registeredAt"]),
+
   // ─── Contact Inquiries (existing, preserved) ─────────────
   contact_inquiries: defineTable({
     name: v.string(),
@@ -269,4 +285,13 @@ export default defineSchema({
     message: v.string(),
     timestamp: v.string(),
   }).index("by_timestamp", ["timestamp"]),
+
+  // ─── Chatbot Interaction Logs ──────────────────────────────
+  chat_logs: defineTable({
+    sessionId: v.string(),
+    userMessage: v.string(),
+    aiResponse: v.string(),
+    extractedInterest: v.optional(v.string()),
+    timestamp: v.string(),
+  }).index("by_timestamp", ["timestamp"]).index("by_sessionId", ["sessionId"]),
 });

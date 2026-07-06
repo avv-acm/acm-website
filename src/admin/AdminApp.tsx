@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
 import AdminSidebar from "./components/AdminSidebar";
 import AdminHeader from "./components/AdminHeader";
-import { loadMembers, loadEvents, loadAdminSigs, loadAuditLogs } from "./lib/db";
+import { loadMembers, loadEvents, loadAdminSigs, loadAuditLogs, loadFlightEvents } from "./lib/db";
 
 // Module Imports
 import MemberList from "./modules/members/MemberList";
 import EventList from "./modules/events/EventList";
+import FlightCardList from "./modules/flight_cards/FlightCardList";
 import SigList from "./modules/sigs/SigList";
 import LeadershipPanel from "./modules/leadership/LeadershipPanel";
 import AuditLog from "./modules/audit/AuditLog";
@@ -14,7 +15,7 @@ import MemoryList from "./modules/gallery/MemoryList";
 import ResourceList from "./modules/resources/ResourceList";
 
 // Icons for Dashboard
-import { Users, Calendar, Layers, Plus, ChevronRight } from "lucide-react";
+import { Users, Calendar, Layers, Plus, ChevronRight, Plane } from "lucide-react";
 
 export default function AdminApp() {
   const [currentTab, setTab] = useState("dashboard");
@@ -23,6 +24,7 @@ export default function AdminApp() {
   // Dashboard stats from localStorage
   const [memberStats, setMemberStats] = useState({ total: 0, active: 0 });
   const [totalEvents, setTotalEvents] = useState(0);
+  const [totalFlightCards, setTotalFlightCards] = useState(0);
   const [totalSigs, setTotalSigs] = useState(0);
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
 
@@ -33,11 +35,13 @@ export default function AdminApp() {
       const events = loadEvents();
       const sigs = loadAdminSigs();
       const logs = loadAuditLogs();
+      const flights = loadFlightEvents();
       setMemberStats({
         total: members.length,
         active: members.filter((m: any) => m.status === "active").length,
       });
       setTotalEvents(events.length);
+      setTotalFlightCards(flights.length);
       setTotalSigs(sigs.length);
       setRecentLogs(logs.slice(0, 5));
     }
@@ -51,6 +55,8 @@ export default function AdminApp() {
         return <MemberList />;
       case "events":
         return <EventList />;
+      case "flight_cards":
+        return <FlightCardList />;
       case "gallery":
         return <MemoryList />;
       case "sigs":
@@ -107,6 +113,16 @@ export default function AdminApp() {
           </div>
           <div className="stat-icon-wrapper" style={{ background: "rgba(175, 82, 222, 0.1)", color: "#af52de" }}>
             <Layers size={20} />
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-details">
+            <span className="stat-value">{totalFlightCards}</span>
+            <span className="stat-label">Flight Cards</span>
+          </div>
+          <div className="stat-icon-wrapper" style={{ background: "rgba(255, 149, 0, 0.1)", color: "#ff9500" }}>
+            <Plane size={20} />
           </div>
         </div>
       </div>

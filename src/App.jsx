@@ -3258,13 +3258,13 @@ export default function App() {
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <li><span style={{ color: 'var(--text-tertiary)' }}>Amrita Nagercoil Campus</span></li>
                 <li><span style={{ color: 'var(--text-tertiary)' }}>Tamil Nadu, India</span></li>
-                <li><a href="mailto:acm@ng.amrita.edu" style={{ color: 'var(--text-secondary)' }}>acm@ng.amrita.edu</a></li>
+                <li><a href="mailto:support@myamrita.me" style={{ color: 'var(--text-secondary)' }}>support@myamrita.me</a></li>
               </ul>
             </div>
           </div>
           
           <div className="footer-copy">
-            <span>Copyright &copy; {new Date().getFullYear()} Amrita ACM Student Chapter. All Rights Reserved.</span>
+            <span>Copyright &copy; 2026 Amrita ACM Student Chapter, Nagercoil. All Rights Reserved.</span>
             <div>
               <a href="#privacy">Privacy Policy</a>
               <a href="#terms">Terms of Use</a>

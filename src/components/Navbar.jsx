@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sun, Moon, Menu, X, Terminal } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Sun, Moon, Menu, X } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab, onJoinClick, user, onLogout }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -31,6 +32,19 @@ export default function Navbar({ activeTab, setActiveTab, onJoinClick, user, onL
     return () => clearTimeout(timer);
   }, [theme]);
 
+  // Effect to toggle nav-menu-open class on body for blurring main content
+  useEffect(() => {
+    if (hoveredItem || isMenuOpen) {
+      document.body.classList.add('nav-menu-open');
+    } else {
+      document.body.classList.remove('nav-menu-open');
+    }
+    
+    return () => {
+      document.body.classList.remove('nav-menu-open');
+    };
+  }, [hoveredItem, isMenuOpen]);
+
   const navItems = [
     { id: 'home', label: 'Home' },
     { id: 'events', label: 'Events' },
@@ -39,8 +53,7 @@ export default function Navbar({ activeTab, setActiveTab, onJoinClick, user, onL
     { id: 'faculty', label: 'Faculty' },
     { id: 'sig', label: 'SIG' },
     { id: 'gallery', label: 'Gallery' },
-    { id: 'contact', label: 'Contact' },
-    { id: 'admin', label: 'Portal' }
+    { id: 'contact', label: 'Support' }
   ];
 
   const megaMenuData = {
@@ -191,19 +204,24 @@ export default function Navbar({ activeTab, setActiveTab, onJoinClick, user, onL
 
       <div className="glass-content navbar-container">
         {/* Left ACM Brand Logo */}
-        <div 
+        <Link 
+          to="/"
           onClick={() => {
-            setActiveTab('home');
+            if(setActiveTab) setActiveTab('home');
             setHoveredItem(null);
           }} 
           onMouseEnter={() => setHoveredItem(null)}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', position: 'relative', zIndex: 10 }}
+          style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', position: 'relative', zIndex: 10 }}
         >
-          <Terminal size={18} color="var(--accent)" />
+          <img
+            src="/acm-logo.png"
+            alt="ACM Amrita Logo"
+            style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+          />
           <span style={{ fontWeight: 700, fontSize: '14px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
             ACM Amrita
           </span>
-        </div>
+        </Link>
 
         {/* Center Desktop Links */}
         <ul className="nav-links" style={styles.desktopLinks}>
@@ -218,21 +236,23 @@ export default function Navbar({ activeTab, setActiveTab, onJoinClick, user, onL
                 }
               }}
             >
-              <a
-                href={item.id === 'admin' ? '/admin' : `#${item.id}`}
-                onClick={(e) => {
-                  if (item.id === 'admin') {
-                    return; // let default href action occur for admin portal route
-                  }
-                  e.preventDefault();
-                  setActiveTab(item.id);
-                  setIsMenuOpen(false);
-                  setHoveredItem(null);
-                }}
-                className={activeTab === item.id ? 'active' : ''}
-              >
-                {item.label}
-              </a>
+              {item.id === 'admin' ? (
+                <a href="/admin" className={activeTab === item.id ? 'active' : ''}>
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  to={item.id === 'home' ? '/' : (item.id === 'core-committee' ? '/committee' : (item.id === 'sig' ? '/sigs' : `/${item.id}`))}
+                  onClick={() => {
+                    if(setActiveTab) setActiveTab(item.id);
+                    setIsMenuOpen(false);
+                    setHoveredItem(null);
+                  }}
+                  className={activeTab === item.id ? 'active' : ''}
+                >
+                  {item.label}
+                </Link>
+              )}
             </li>
           ))}
         </ul>
@@ -362,13 +382,22 @@ export default function Navbar({ activeTab, setActiveTab, onJoinClick, user, onL
                           >
                             {link.label}
                           </button>
-                        ) : (
+                        ) : link.href && link.href.startsWith('http') ? (
                           <a
                             href={link.href}
-                            target={link.target}
-                            onClick={(e) => {
-                              if (link.href && link.href.startsWith('#')) {
-                                e.preventDefault();
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => setHoveredItem(null)}
+                            className="mega-dropdown-link"
+                          >
+                            <span className="link-text">{link.label}</span>
+                            {link.desc && <span className="link-desc">{link.desc}</span>}
+                          </a>
+                        ) : (
+                          <Link
+                            to={link.href ? (link.href.replace('#', '/') === '/core-committee' ? '/committee' : link.href.replace('#', '/').replace('/sig', '/sigs')) : '/'}
+                            onClick={() => {
+                              if(setActiveTab && link.href) {
                                 setActiveTab(link.href.slice(1));
                               }
                               setHoveredItem(null);
@@ -377,7 +406,7 @@ export default function Navbar({ activeTab, setActiveTab, onJoinClick, user, onL
                           >
                             <span className="link-text">{link.label}</span>
                             {link.desc && <span className="link-desc">{link.desc}</span>}
-                          </a>
+                          </Link>
                         )}
                       </li>
                     ))}
@@ -395,20 +424,31 @@ export default function Navbar({ activeTab, setActiveTab, onJoinClick, user, onL
           <ul style={styles.mobileNavLinks}>
             {navItems.map((item) => (
               <li key={item.id} style={styles.mobileNavItem}>
-                <a
-                  href={`#${item.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveTab(item.id);
-                    setIsMenuOpen(false);
-                  }}
-                  style={{
-                    ...styles.mobileNavLink,
-                    color: activeTab === item.id ? 'var(--accent)' : 'var(--text-primary)'
-                  }}
-                >
-                  {item.label}
-                </a>
+                {item.id === 'admin' ? (
+                  <a
+                    href="/admin"
+                    style={{
+                      ...styles.mobileNavLink,
+                      color: activeTab === item.id ? 'var(--accent)' : 'var(--text-primary)'
+                    }}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    to={item.id === 'home' ? '/' : (item.id === 'core-committee' ? '/committee' : (item.id === 'sig' ? '/sigs' : `/${item.id}`))}
+                    onClick={() => {
+                      if(setActiveTab) setActiveTab(item.id);
+                      setIsMenuOpen(false);
+                    }}
+                    style={{
+                      ...styles.mobileNavLink,
+                      color: activeTab === item.id ? 'var(--accent)' : 'var(--text-primary)'
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                )}
               </li>
             ))}
             <li style={{ ...styles.mobileNavItem, marginTop: '20px' }}>

@@ -1,5 +1,5 @@
 /* Apple Design System & Visual Tokens (HIG Inspired) */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   /* Dark Mode Default Tokens */
@@ -30,7 +30,7 @@
   --card-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
   --footer-overlay: rgba(22, 22, 23, 0.94);
   
-  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
@@ -109,6 +109,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -134,7 +138,7 @@ a:hover {
 
 /* Navigation Layout */
 .navbar {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -402,10 +406,13 @@ a:hover {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--bg-secondary);
+  background: var(--lg-bg-color);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(255, 255, 255, 0.2);
+  border-left-color: rgba(255, 255, 255, 0.2);
   border-radius: inherit;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
   z-index: -2;
   pointer-events: none;
   transition: var(--transition-smooth);
@@ -747,17 +754,19 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
+  background: var(--lg-bg-color);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(255, 255, 255, 0.25);
+  border-left-color: rgba(255, 255, 255, 0.2);
   border-radius: 99px;
   padding: 4px;
   margin: 0;
   width: 104px !important;
   height: 36px !important;
   flex-shrink: 0 !important;
-  border-top-color: rgba(255, 255, 255, 0.08);
-  border-bottom-color: rgba(0, 0, 0, 0.2);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   box-sizing: border-box;
   filter: none;
   overflow: hidden;
@@ -1431,11 +1440,12 @@ a:hover {
   left: 0;
   top: 100%;
   width: 100%;
-  background: rgba(var(--bg-secondary-rgb), 0.22);
-  backdrop-filter: blur(64px) saturate(220%);
-  -webkit-backdrop-filter: blur(64px) saturate(220%);
+  background: var(--bg-primary);
+  opacity: 0.95;
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
   z-index: 99;
   transform-origin: top;
   animation: megaSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1864,10 +1874,13 @@ a:hover {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(225deg, rgba(var(--accent-rgb), 0.12) 0%, rgba(var(--bg-secondary-rgb), 0.95) 100%);
+  background: linear-gradient(225deg, rgba(var(--accent-rgb), 0.12) 0%, var(--lg-bg-color) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(255, 255, 255, 0.2);
+  border-left-color: rgba(255, 255, 255, 0.2);
   border-radius: inherit;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
   z-index: -2;
   pointer-events: none;
 }
@@ -2393,4 +2406,34 @@ a:hover {
   .footer-campus-sketch {
     display: none !important;
   }
+}
+
+/* Nav Menu Open Blur Effect for App Pages */
+body.nav-menu-open #root > div > main,
+body.nav-menu-open #root > div > footer {
+  filter: blur(12px) brightness(0.6);
+  transition: filter 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+}
+
+#root > div > main,
+#root > div > footer {
+  transition: filter 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Page Transition Animations */
+@keyframes pageFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.page-transition-enter {
+  animation: pageFadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: opacity, transform;
 }

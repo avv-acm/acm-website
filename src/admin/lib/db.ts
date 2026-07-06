@@ -146,3 +146,54 @@ export function loadResources(): any[] {
 export function loadAuditLogs(): any[] {
   return dbLoad<any>(AUDIT_KEY, []);
 }
+
+// ── Flight Cards / Special Events ─────────────────────────────────────────────
+const FLIGHT_EVENTS_KEY = "acm_flight_events";
+
+export const DEFAULT_FLIGHT_EVENTS = [
+  {
+    _id: "flight-1",
+    bg: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80",
+    cityName: "Hacknight 2026",
+    fareClass: "Premium Hackathon",
+    priceVal: "₹0",
+    airportCode: "ACM",
+    buttonText: "Book Ticket",
+    link: "/register",
+    published: true,
+    likesCount: 12
+  },
+  {
+    _id: "flight-2",
+    bg: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
+    cityName: "AI Dev Bootcamp",
+    fareClass: "Gemini Edition",
+    priceVal: "₹0",
+    airportCode: "BLR",
+    buttonText: "Claim Pass",
+    link: "/register",
+    published: true,
+    likesCount: 24
+  },
+  {
+    _id: "flight-3",
+    bg: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80",
+    cityName: "CTF Hardening",
+    fareClass: "Cyber Defense",
+    priceVal: "₹0",
+    airportCode: "ZTR",
+    buttonText: "Deploy Mission",
+    link: "/register",
+    published: true,
+    likesCount: 18
+  }
+];
+
+export function loadFlightEvents(): any[] {
+  return dbLoad<any>(FLIGHT_EVENTS_KEY, DEFAULT_FLIGHT_EVENTS);
+}
+
+export function saveFlightEvents(events: any[]): void {
+  dbSave(FLIGHT_EVENTS_KEY, events);
+}
+

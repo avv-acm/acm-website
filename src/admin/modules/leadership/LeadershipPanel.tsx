@@ -41,11 +41,16 @@ export default function LeadershipPanel() {
   const [twitter, setTwitter] = useState("");
   const [instagram, setInstagram] = useState("");
   const [website, setWebsite] = useState("");
+  const [meta1, setMeta1] = useState("");
+  const [meta2, setMeta2] = useState("");
+  const [buttonText, setButtonText] = useState("");
+  const [actionUrl, setActionUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const resetForm = () => {
     setName(""); setRole(""); setDepartment(""); setBio(""); setEmail(""); setImageUrl("");
     setGithub(""); setLinkedin(""); setTwitter(""); setInstagram(""); setWebsite("");
+    setMeta1(""); setMeta2(""); setButtonText(""); setActionUrl("");
   };
 
   const handleAdd = (type: "committee" | "faculty") => {
@@ -59,10 +64,14 @@ export default function LeadershipPanel() {
     setPanelType(type);
     setEditingPerson(person);
     setName(person.name || ""); setRole(person.role || ""); setDepartment(person.department || "");
-    setBio(person.bio || ""); setEmail(person.email || ""); setImageUrl(person.imageUrl || "");
+    setBio(person.bio || ""); setEmail(person.email || ""); setImageUrl(person.imageUrl || person.photo || "");
     const s = person.socialLinks || {};
-    setGithub(s.github || ""); setLinkedin(s.linkedin || ""); setTwitter(s.twitter || "");
-    setInstagram(s.instagram || ""); setWebsite(s.website || "");
+    setGithub(s.github || person.github || ""); setLinkedin(s.linkedin || person.linkedin || ""); setTwitter(s.twitter || person.twitter || "");
+    setInstagram(s.instagram || person.instagram || ""); setWebsite(s.website || person.website || "");
+    setMeta1(person.meta1 || "");
+    setMeta2(person.meta2 || "");
+    setButtonText(person.buttonText || "");
+    setActionUrl(person.actionUrl || "");
     setIsModalOpen(true);
   };
 
@@ -81,7 +90,18 @@ export default function LeadershipPanel() {
     if (!name.trim() || !role.trim()) return;
     setSubmitting(true);
     const socialLinks = { github: github || undefined, linkedin: linkedin || undefined, twitter: twitter || undefined, instagram: instagram || undefined, website: website || undefined };
-    const payload: any = { name, role, bio: bio || undefined, email: email || undefined, imageUrl: imageUrl || undefined, socialLinks };
+    const payload: any = { 
+      name, 
+      role, 
+      bio: bio || undefined, 
+      email: email || undefined, 
+      imageUrl: imageUrl || undefined, 
+      socialLinks,
+      meta1: meta1 || undefined,
+      meta2: meta2 || undefined,
+      buttonText: buttonText || undefined,
+      actionUrl: actionUrl || undefined
+    };
     if (panelType === "faculty") payload.department = department || undefined;
 
     const key = panelType === "committee" ? LEADERSHIP_KEY : FACULTY_KEY;
@@ -203,6 +223,30 @@ export default function LeadershipPanel() {
           <div className="form-group">
             <label className="form-label">Short Biography</label>
             <textarea className="form-input" value={bio} onChange={(e) => setBio(e.target.value)} rows={3} style={{ resize: "none", fontFamily: "var(--font-family)", fontSize: "14px" }} />
+          </div>
+
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "12px" }}>
+            <label className="form-label" style={{ marginBottom: "10px", display: "block", fontWeight: 600 }}>Destination Card Customization</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "12px" }}>
+              <div className="form-group">
+                <label className="form-label">Meta Info 1 (e.g. from Dept. of CSE)</label>
+                <input type="text" className="form-input" placeholder={panelType === "faculty" ? "from Dept. of CSE" : "from Amrita ACM"} value={meta1} onChange={(e) => setMeta1(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Meta Info 2 / Code (e.g. FAC or ACM)</label>
+                <input type="text" className="form-input" placeholder={panelType === "faculty" ? "FAC" : "ACM"} value={meta2} onChange={(e) => setMeta2(e.target.value)} />
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div className="form-group">
+                <label className="form-label">Button Label (e.g. Connect)</label>
+                <input type="text" className="form-input" placeholder="Connect" value={buttonText} onChange={(e) => setButtonText(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Action Link / URL</label>
+                <input type="url" className="form-input" placeholder="https://linkedin.com/in/..." value={actionUrl} onChange={(e) => setActionUrl(e.target.value)} />
+              </div>
+            </div>
           </div>
 
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: "12px" }}>

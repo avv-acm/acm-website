@@ -9,7 +9,8 @@ import {
   LogOut, 
   User,
   Image,
-  BookOpen
+  BookOpen,
+  Plane
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
@@ -25,6 +26,7 @@ export default function AdminSidebar({ currentTab, setTab }: SidebarProps) {
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, role: "editor" },
     { id: "members", label: "Members", icon: Users, role: "editor" },
     { id: "events", label: "Events", icon: Calendar, role: "editor" },
+    { id: "flight_cards", label: "Flight Cards", icon: Plane, role: "editor" },
     { id: "gallery", label: "Gallery & Memories", icon: Image, role: "editor" },
     { id: "sigs", label: "SIGs", icon: Layers, role: "editor" },
     { id: "leadership", label: "Leadership", icon: UserCheck, role: "editor" },
